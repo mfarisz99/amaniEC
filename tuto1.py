@@ -8,13 +8,12 @@ import random
 #POP_SIZE: Number of Chromosomes in our list.
 POP_SIZE = 500
 
-#MUT_RATE: Rate at which our string will be changed.
-
-# Input for mutation rate
-MUT_RATE = st.number_input("Enter your mutation rate", min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
-
 #TARGET: Our goal
 TARGET = st.text_input("Enter your name", "amani")
+
+#MUT_RATE: Rate at which our string will be changed.
+# Input for mutation rate
+MUT_RATE = st.number_input("Enter your mutation rate", min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
 
 #GENES: Options from which our population would be created.
 GENES = ' abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
