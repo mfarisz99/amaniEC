@@ -9,7 +9,7 @@ import random
 POP_SIZE = 500
 
 #MUT_RATE: Rate at which our string will be changed.
-MUT_RATE = 0.2
+
 # Input for mutation rate
 MUT_RATE = st.number_input("Enter your mutation rate", min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
 
