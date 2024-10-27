@@ -11,10 +11,10 @@ POP_SIZE = 500
 #MUT_RATE: Rate at which our string will be changed.
 MUT_RATE = 0.2
 # Input for mutation rate
-mutation_rate = st.number_input("Enter your mutation rate", min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
+MUT_RATE = st.number_input("Enter your mutation rate", min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
 
 #TARGET: Our goal
-TARGET = st.text_input("Enter your name")
+TARGET = st.text_input("Enter your name", amani)
 
 #GENES: Options from which our population would be created.
 GENES = ' abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -81,8 +81,7 @@ def mutate(offspring, MUT_RATE):
 # Button to calculate
 if st.button("Calculate"):
     # Placeholder calculation based on mutation rate
-    result = f"Hello, {name}! Your mutation rate is set to {mutation_rate}."
-    st.write(result)
+    result = f"Hello, {TARGET}! Your mutation rate is set to {MUT_RATE}."
 
 #replacement
 
