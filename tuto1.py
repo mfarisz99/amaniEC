@@ -78,6 +78,12 @@ def mutate(offspring, MUT_RATE):
       mutated_offspring.append(arr)
   return mutated_offspring
 
+# Button to calculate
+if st.button("Calculate"):
+    # Placeholder calculation based on mutation rate
+    result = f"Hello, {name}! Your mutation rate is set to {mutation_rate}."
+    st.write(result)
+
 #replacement
 
 def replace(new_gen, population):
