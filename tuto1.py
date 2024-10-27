@@ -1,7 +1,7 @@
 import streamlit as st  
 st.set_page_config(     
 page_title="Genetic Algorithm" )  
-st.header("Genetic Algorithm", divider="pink") 
+st.header("Genetic Algorithm", divider="gray") 
 
 import random
 
@@ -10,6 +10,8 @@ POP_SIZE = 500
 
 #MUT_RATE: Rate at which our string will be changed.
 MUT_RATE = 0.2
+# Input for mutation rate
+mutation_rate = st.number_input("Enter your mutation rate", min_value=0.0, max_value=1.0, step=0.01, format="%.2f")
 
 #TARGET: Our goal
 TARGET = st.text_input("Enter your name")
