@@ -200,7 +200,7 @@ def run_ga(cities_names, n_population, n_generations, crossover_per, mutation_pe
         #     print(offspring_2)
         #     print()
 
-mutate_threashold = random.random()
+            mutate_threashold = random.random()
             if(mutate_threashold > (1-mutation_per)):
                 offspring_1 = mutation(offspring_1)
         #         print("Offspring 1 mutated", offspring_1)
@@ -223,7 +223,7 @@ mutate_threashold = random.random()
         for i in best_fitness_indices:
             best_mixed_offspring.append(mixed_offspring[i])
 
-for i in range(0, n_generations):
+        for i in range(0, n_generations):
             # if (i%10 == 0):
                 # print("Generation: ", i)
     
@@ -262,7 +262,7 @@ for i in range(0, n_generations):
     #             print(i)
                 best_mixed_offspring.append(population[i])
 
-random.shuffle(best_mixed_offspring)
+            random.shuffle(best_mixed_offspring)
     
         return best_mixed_offspring
     
@@ -278,7 +278,7 @@ random.shuffle(best_mixed_offspring)
     st.write(minimum_distance)
     
     #shortest path
-    # shortest_path = offspring_list[index_minimum]
+    #shortest_path = offspring_list[index_minimum]
     shortest_path = best_mixed_offspring[index_minimum]
     st.write(shortest_path)
 
