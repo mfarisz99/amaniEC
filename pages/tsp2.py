@@ -104,13 +104,13 @@ if st.button("Submit"):
     #fitness probablity function
     
     def fitness_prob(population):
-        
+        """
         Calculating the fitness probability
         Input:
         1- Population
         Output:
         Population fitness probability
-        
+        """
         total_dist_all_individuals = []
         for i in range(0, len(population)):
             total_dist_all_individuals.append(total_dist_individual(population[i]))
