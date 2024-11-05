@@ -46,7 +46,7 @@ if st.button("Submit"):
     fig, ax = plt.subplots()
     ax.grid(False)
 
-        for i, (city, (city_x, city_y)) in enumerate(city_coords.items()):
+    for i, (city, (city_x, city_y)) in enumerate(city_coords.items()):
         color = colors[i % len(colors)]
         icon = city_icons[city]
         ax.scatter(city_x, city_y, c=[color], s=1200, zorder=2)
@@ -54,7 +54,7 @@ if st.button("Submit"):
         ax.annotate(city, (city_x, city_y), fontsize=12, ha='center', va='bottom', xytext=(0, -30),
         textcoords='offset points')
     
-        for j, (other_city, (other_x, other_y)) in enumerate(city_coords.items()):
+    for j, (other_city, (other_x, other_y)) in enumerate(city_coords.items()):
         if i != j:
             ax.plot([city_x, other_x], [city_y, other_y], color='gray', linestyle='-', linewidth=1, alpha=0.1)
     
