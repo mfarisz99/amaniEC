@@ -78,7 +78,7 @@ if st.button("Submit"):
         possible_perms = list(permutations(cities_list))
         random_ids = random.sample(range(0,len(possible_perms)),n_population)
 
-       for i in random_ids:
+        for i in random_ids:
             population_perms.append(list(possible_perms[i]))
     
         return population_perms
