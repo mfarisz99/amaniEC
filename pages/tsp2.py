@@ -39,7 +39,7 @@ if st.button("Submit"):
     mutation_per = 0.2
     n_generations = 200
 
-# Visualization colors and icons
+    # Visualization colors and icons
     colors = sns.color_palette("pastel", len(cities_names))
     
     # Plotting the cities
@@ -61,10 +61,10 @@ if st.button("Submit"):
     fig.set_size_inches(16, 12)
     st.pyplot(fig)
 
-#population
+    #population
     def initial_population(cities_list, n_population = 250):
     
-        
+        """
         Generating initial population of cities randomly selected from the all possible permutations
         of the given cities.
         Input:
@@ -72,7 +72,7 @@ if st.button("Submit"):
         2- Number of population
         Output:
         Generated lists of cities
-        
+        """
     
         population_perms = []
         possible_perms = list(permutations(cities_list))
