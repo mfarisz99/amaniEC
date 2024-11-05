@@ -183,7 +183,7 @@ if st.button("Submit"):
         offspring[index_2] = temp
         return(offspring)
 
-   def run_ga(cities_names, n_population, n_generations, crossover_per, mutation_per):
+    def run_ga(cities_names, n_population, n_generations, crossover_per, mutation_per):
     
         population = initial_population(cities_names, n_population)
         fitness_probs = fitness_prob(population)
