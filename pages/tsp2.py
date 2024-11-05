@@ -64,7 +64,7 @@ if st.button("Submit"):
 #population
     def initial_population(cities_list, n_population = 250):
     
-        """
+        
         Generating initial population of cities randomly selected from the all possible permutations
         of the given cities.
         Input:
@@ -72,7 +72,7 @@ if st.button("Submit"):
         2- Number of population
         Output:
         Generated lists of cities
-        """
+        
     
         population_perms = []
         possible_perms = list(permutations(cities_list))
@@ -83,7 +83,7 @@ if st.button("Submit"):
     
         return population_perms
 
-#distance between two cities
+    #distance between two cities
     
     def dist_two_cities(city_1, city_2):
     
@@ -101,16 +101,16 @@ if st.button("Submit"):
                 total_dist += dist_two_cities(individual[i], individual[i+1])
         return total_dist
 
-#fitness probablity function
+    #fitness probablity function
     
     def fitness_prob(population):
-        """
+        
         Calculating the fitness probability
         Input:
         1- Population
         Output:
         Population fitness probability
-        """
+        
         total_dist_all_individuals = []
         for i in range(0, len(population)):
             total_dist_all_individuals.append(total_dist_individual(population[i]))
@@ -121,7 +121,7 @@ if st.button("Submit"):
         population_fitness_probs = population_fitness / population_fitness_sum
         return population_fitness_probs
 
-#roulette wheel
+    #roulette wheel
     
     def roulette_wheel(population, fitness_probs):
         """
@@ -137,7 +137,7 @@ if st.button("Submit"):
         selected_individual_index = len(bool_prob_array[bool_prob_array == True]) - 1
         return population[selected_individual_index]
 
- #crossover
+    #crossover
     
     def crossover(parent_1, parent_2):
         """
@@ -164,7 +164,7 @@ if st.button("Submit"):
     
         return offspring_1, offspring_2
 
-#mutation
+    #mutation
     
     def mutation(offspring):
         """
@@ -183,7 +183,7 @@ if st.button("Submit"):
         offspring[index_2] = temp
         return(offspring)
 
-def run_ga(cities_names, n_population, n_generations, crossover_per, mutation_per):
+   def run_ga(cities_names, n_population, n_generations, crossover_per, mutation_per):
     
         population = initial_population(cities_names, n_population)
         fitness_probs = fitness_prob(population)
@@ -266,7 +266,7 @@ def run_ga(cities_names, n_population, n_generations, crossover_per, mutation_pe
     
         return best_mixed_offspring
     
-      best_mixed_offspring = run_ga(cities_names, n_population, n_generations, crossover_per, mutation_per)
+    best_mixed_offspring = run_ga(cities_names, n_population, n_generations, crossover_per, mutation_per)
     
     total_dist_all_individuals = []
     for i in range(0, n_population):
@@ -282,7 +282,7 @@ def run_ga(cities_names, n_population, n_generations, crossover_per, mutation_pe
     shortest_path = best_mixed_offspring[index_minimum]
     st.write(shortest_path)
 
-x_shortest = []
+    x_shortest = []
     y_shortest = []
     for city in shortest_path:
         x_value, y_value = city_coords[city]
@@ -304,7 +304,7 @@ x_shortest = []
               fontsize=25,
               color="k")
 
-str_params = '\n'+str(n_generations)+' Generations\n'+str(n_population)+' Population Size\n'+str(crossover_per)+' Crossover\n'+str(mutation_per)+' Mutation'
+    str_params = '\n'+str(n_generations)+' Generations\n'+str(n_population)+' Population Size\n'+str(crossover_per)+' Crossover\n'+str(mutation_per)+' Mutation'
     plt.suptitle("Total Distance Travelled: "+
                  str(round(minimum_distance, 3)) +
                  str_params, fontsize=18, y = 1.047)
