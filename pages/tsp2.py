@@ -28,7 +28,7 @@ for i in range(num_cities):
         city_y = st.number_input(f" y-coordinate (City {i+1})", min_value=0, max_value=10, value=0, step=1)
         y.append(city_y)
 
-if st.button("Submit"):
+if st.button("Submit"):       #submit button
     city_coords = dict(zip(cities_names, zip(x, y)))
     # Assign each city a unique icon from the list
     city_icons = dict(zip(cities_names, ["♕", "♖", "♗", "♘", "♙", "♔", "♚", "♛", "♜", "♝"]))
@@ -300,7 +300,7 @@ if st.button("Submit"):
         for j in range(i + 1, len(x)):
             ax.plot([x[i], x[j]], [y[i], y[j]], 'k-', alpha=0.09, linewidth=1)
     
-    plt.title(label="TSP Best Route Using GA",
+    plt.title(label="TSP For Cities",
               fontsize=25,
               color="k")
 
