@@ -111,5 +111,3 @@ lam = 100
 best, score = es_combined(objective, bounds, n_iter, step_size, mu, lam, switch_strategy="hybrid", switch_epoch=50)
 print(f"Done! Best Solution: f({best}) = {score:.5f}")
 
-# show the plot
-pyplot.show()
