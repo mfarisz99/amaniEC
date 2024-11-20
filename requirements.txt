@@ -1,2 +1,11 @@
 matplotlib
 seaborn
+numpy
+pillow
+streamlit
+streamlit_drawable_canvas
+opencv-python
+opencv-python-headless
+opencv-contrib-python
+pandas
+opencv-contrib-python-headless
