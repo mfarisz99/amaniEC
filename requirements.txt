@@ -10,4 +10,4 @@ opencv-contrib-python
 pandas
 opencv-contrib-python-headless
 csv
-random
+
