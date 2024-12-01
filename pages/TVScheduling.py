@@ -1,21 +1,19 @@
-import streamlit as st
 import csv
-import random
 
 # Function to read the CSV file and convert it to the desired format
 def read_csv_to_dict(file_path):
     program_ratings = {}
-    try:
-        with open(file_path, mode='r', newline='') as file:
-            reader = csv.reader(file)
-            # Skip the header
-            header = next(reader)
-            for row in reader:
-                program = row[0]
-                ratings = [float(x) for x in row[1:]]  # Convert the ratings to floats
-                program_ratings[program] = ratings
-    except FileNotFoundError:
-        st.error("File not found. Please upload the correct CSV file.")
+    
+    with open(file_path, mode='r', newline='') as file:
+        reader = csv.reader(file)
+        # Skip the header
+        header = next(reader)
+        
+        for row in reader:
+            program = row[0]
+            ratings = [float(x) for x in row[1:]]  # Convert the ratings to floats
+            program_ratings[program] = ratings
+    
     return program_ratings
 
 # Path to the CSV file
@@ -27,6 +25,9 @@ program_ratings_dict = read_csv_to_dict(file_path)
 # Print the result (you can also return or process it further)
 for program, ratings in program_ratings_dict.items():
     print(f"'{program}': {ratings},")
+
+
+import random
 
 ##################################### DEFINING PARAMETERS AND DATASET ################################################################
 # Sample rating programs dataset for each time slot.
