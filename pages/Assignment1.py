@@ -21,12 +21,14 @@ file_path = 'content/program_ratings.csv'
 
 # Get the data in the required format
 program_ratings_dict = read_csv_to_dict(file_path)
+all_programs = list(program_ratings_dict.keys())
+all_time_slots = list(range(len(next(iter(program_ratings_dict.values())))))  # Generate time slots based on ratings length
 
 # Fitness function
 def fitness_function(schedule):
     total_rating = 0
     for time_slot, program in enumerate(schedule):
-        total_rating += ratings[program][time_slot]
+        total_rating += program_ratings_dict[program][time_slot]
     return total_rating
 
 # Crossover
@@ -78,32 +80,50 @@ def genetic_algorithm(initial_schedule, generations, population_size, crossover_
 
 # Streamlit UI
 st.title("Program Scheduling Optimization")
-st.sidebar.header("Genetic Algorithm Parameters")
 
 # Input parameters
-GEN = 100
-POP = 50
-crossover_rate = float(input("Crossover Rate (0.0 to 0.95, default 0.8): ") or 0.8)
-mutation_rate = float(input("Mutation Rate (0.01 to 0.05, default 0.2): ") or 0.2)
-EL_S = 2
+st.write("Masukkan parameter berikut:")
+crossover_rate = st.text_input("Crossover Rate (0.0 hingga 0.95, lalai 0.8):", value="0.8")
+mutation_rate = st.text_input("Mutation Rate (0.01 hingga 0.05, lalai 0.2):", value="0.2")
 
-if st.sidebar.button("Run Genetic Algorithm"):
-    # Create initial schedule
-    initial_schedule = all_programs[:len(all_time_slots)]
-    random.shuffle(initial_schedule)
+# Validate input
+try:
+    crossover_rate = float(crossover_rate)
+    mutation_rate = float(mutation_rate)
+    if not (0.0 <= crossover_rate <= 0.95) or not (0.01 <= mutation_rate <= 0.05):
+        raise ValueError
+except ValueError:
+    st.error("Sila masukkan nilai yang sah untuk Crossover Rate (0.0-0.95) dan Mutation Rate (0.01-0.05).")
+else:
+    # Default parameters
+    generations = 100
+    population_size = 50
+    elitism_size = 2
 
-    # Run the algorithm
-    best_schedule = genetic_algorithm(initial_schedule, generations, population_size, crossover_rate, mutation_rate, elitism_size)
+    if st.button("Run Genetic Algorithm"):
+        # Create initial schedule
+        initial_schedule = all_programs[:len(all_time_slots)]
+        random.shuffle(initial_schedule)
 
-    # Display results in a table format
-    st.subheader("Final Optimal Schedule")
-    schedule_data = {
-        "Time Slot": [f"{hour}:00" for hour in all_time_slots],
-        "Program": best_schedule
-    }
-    df = pd.DataFrame(schedule_data)
-    st.table(df)
+        # Run the algorithm
+        best_schedule = genetic_algorithm(
+            initial_schedule, 
+            generations, 
+            population_size, 
+            crossover_rate, 
+            mutation_rate, 
+            elitism_size
+        )
 
-    # Display total ratings
-    total_rating = fitness_function(best_schedule)
-    st.write(f"**Total Ratings: {total_rating:.2f}**")
+        # Display results in a table format
+        st.subheader("Final Optimal Schedule")
+        schedule_data = {
+            "Time Slot": [f"{hour}:00" for hour in range(len(all_time_slots))],
+            "Program": best_schedule
+        }
+        df = pd.DataFrame(schedule_data)
+        st.table(df)
+
+        # Display total ratings
+        total_rating = fitness_function(best_schedule)
+        st.write(f"**Total Ratings: {total_rating:.2f}**")
