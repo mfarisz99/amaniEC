@@ -17,12 +17,17 @@ def read_csv_to_dict(file_path):
     return program_ratings
 
 # Path to the CSV file
-file_path = 'content/program_ratings.csv'  
+file_path = 'content/program_ratings.csv'
 
 # Get the data in the required format
 program_ratings_dict = read_csv_to_dict(file_path)
 all_programs = list(program_ratings_dict.keys())
 all_time_slots = list(range(len(next(iter(program_ratings_dict.values())))))  # Generate time slots based on ratings length
+
+# Ensure there are enough programs
+if len(all_programs) < len(all_time_slots):
+    all_programs = all_programs * (len(all_time_slots) // len(all_programs) + 1)
+    all_programs = all_programs[:len(all_time_slots)]
 
 # Fitness function
 def fitness_function(schedule):
@@ -43,6 +48,15 @@ def mutate(schedule):
     mutate_point = random.randint(0, len(schedule) - 1)
     new_program = random.choice(all_programs)
     schedule[mutate_point] = new_program
+    return schedule
+
+# Adjust schedule length
+def adjust_schedule_length(schedule):
+    if len(schedule) > len(all_time_slots):
+        schedule = schedule[:len(all_time_slots)]
+    elif len(schedule) < len(all_time_slots):
+        additional_programs = random.choices(all_programs, k=len(all_time_slots) - len(schedule))
+        schedule.extend(additional_programs)
     return schedule
 
 # Genetic algorithm
@@ -71,6 +85,10 @@ def genetic_algorithm(initial_schedule, generations, population_size, CO_R, MUT_
                 child1 = mutate(child1)
             if random.random() < MUT_R:
                 child2 = mutate(child2)
+
+            # Adjust lengths
+            child1 = adjust_schedule_length(child1)
+            child2 = adjust_schedule_length(child2)
 
             new_population.extend([child1, child2])
 
