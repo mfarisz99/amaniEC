@@ -33,16 +33,16 @@ def fitness_function(schedule):
 
 # Crossover
 def crossover(schedule1, schedule2):
-    CO_P = random.randint(1, len(schedule1) - 2)
-    child1 = schedule1[:CO_P] + schedule2[CO_P:]
-    child2 = schedule2[:CO_P] + schedule1[CO_P:]
+    crossover_point = random.randint(1, len(schedule1) - 2)
+    child1 = schedule1[:crossover_point] + schedule2[crossover_point:]
+    child2 = schedule2[:crossover_point] + schedule1[crossover_point:]
     return child1, child2
 
 # Mutation
 def mutate(schedule):
-    MUT_P = random.randint(0, len(schedule) - 1)
+    mutate_point = random.randint(0, len(schedule) - 1)
     new_program = random.choice(all_programs)
-    schedule[MUT_P] = new_program
+    schedule[mutate_point] = new_program
     return schedule
 
 # Genetic algorithm
@@ -62,14 +62,14 @@ def genetic_algorithm(initial_schedule, generations, population_size, CO_R, MUT_
 
         while len(new_population) < population_size:
             parent1, parent2 = random.choices(population, k=2)
-            if random.random() < crossover_rate:
+            if random.random() < CO_R:
                 child1, child2 = crossover(parent1, parent2)
             else:
                 child1, child2 = parent1.copy(), parent2.copy()
 
-            if random.random() < mutation_rate:
+            if random.random() < MUT_R:
                 child1 = mutate(child1)
-            if random.random() < mutation_rate:
+            if random.random() < MUT_R:
                 child2 = mutate(child2)
 
             new_population.extend([child1, child2])
