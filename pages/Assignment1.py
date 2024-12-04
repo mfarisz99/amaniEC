@@ -134,14 +134,12 @@ else:
 
     # Ensure lists are the same length before creating DataFrame
     schedule_data = {
-    "Time Slot": [f"{hour}:00" for hour in range(len(best_schedule))],
-    "Program": best_schedule
+        "Time Slot": [f"{hour}:00" for hour in range(len(best_schedule))],
+        "Program": best_schedule
     }
     df = pd.DataFrame(schedule_data)
     st.table(df)
-        
+
     # Display total ratings
     total_rating = fitness_function(best_schedule)
     st.write(f"Total Ratings: {total_rating:.2f}")
- else:
-    st.error("Schedule length does not match the number of time slots!")
