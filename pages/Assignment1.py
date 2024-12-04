@@ -101,8 +101,8 @@ st.write("Program Scheduling Optimization")
 
 # Input parameters
 try:
-    CO_R = float(st.text_input("Enter Crossover Rate (0.0 to 0.95, default 0.80): ") or 0.95))
-    MUT_R = float(st.text_input("Enter Mutation Rate (0.01 to 0.05, default 0.20): ") or 0.05))
+    CO_R = float(st.text_input("Enter Crossover Rate (0.0 to 0.95, default 0.80): ") or 0.95)
+    MUT_R = float(st.text_input("Enter Mutation Rate (0.01 to 0.05, default 0.20): ") or 0.05)
 
     if not (0.0 <= CO_R <= 0.95) or not (0.01 <= MUT_R <= 0.05):
         raise ValueError("Invalid input range for crossover or mutation rate.")
