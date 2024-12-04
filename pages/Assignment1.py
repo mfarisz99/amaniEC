@@ -137,8 +137,8 @@ else:
     "Time Slot": [f"{hour}:00" for hour in range(len(best_schedule))],
     "Program": best_schedule
     }
-        df = pd.DataFrame(schedule_data)
-        st.table(df)
+    df = pd.DataFrame(schedule_data)
+    st.table(df)
         
         # Display total ratings
         total_rating = fitness_function(best_schedule)
