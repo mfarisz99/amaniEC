@@ -143,5 +143,5 @@ else:
     # Display total ratings
     total_rating = fitness_function(best_schedule)
     st.write(f"Total Ratings: {total_rating:.2f}")
-else:
+ else:
     st.error("Schedule length does not match the number of time slots!")
