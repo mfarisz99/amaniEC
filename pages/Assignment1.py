@@ -6,23 +6,25 @@ import pandas as pd
 # Function to read the CSV file and convert it to the desired format
 def read_csv_to_dict(file_path):
     program_ratings = {}
+    time_slots = []  # To store time slots
     with open(file_path, mode='r', newline='') as file:
         reader = csv.reader(file)
-        # Skip the header
+        # Read header (time slots)
         header = next(reader)
+        time_slots = header[1:]  # Skip the first column (program names)
+        
         for row in reader:
             program = row[0]
             ratings = [float(x) for x in row[1:]]
             program_ratings[program] = ratings
-    return program_ratings
+    return program_ratings, time_slots
 
 # Path to the CSV file
 file_path = 'content/program_ratings.csv'
 
-# Get the data in the required format
-program_ratings_dict = read_csv_to_dict(file_path)
+# Read CSV and extract program ratings and time slots
+program_ratings_dict, all_time_slots = read_csv_to_dict(file_path)
 all_programs = list(program_ratings_dict.keys())
-all_time_slots = list(range(len(next(iter(program_ratings_dict.values())))))  # Generate time slots based on ratings length
 
 # Ensure there are enough programs
 if len(all_programs) < len(all_time_slots):
@@ -48,15 +50,6 @@ def mutate(schedule):
     mutate_point = random.randint(0, len(schedule) - 1)
     new_program = random.choice(all_programs)
     schedule[mutate_point] = new_program
-    return schedule
-
-# Adjust schedule length
-def adjust_schedule_length(schedule):
-    if len(schedule) > len(all_time_slots):
-        schedule = schedule[:len(all_time_slots)]
-    elif len(schedule) < len(all_time_slots):
-        additional_programs = random.choices(all_programs, k=len(all_time_slots) - len(schedule))
-        schedule.extend(additional_programs)
     return schedule
 
 # Genetic algorithm
@@ -86,23 +79,19 @@ def genetic_algorithm(initial_schedule, generations, population_size, CO_R, MUT_
             if random.random() < MUT_R:
                 child2 = mutate(child2)
 
-            # Adjust lengths
-            child1 = adjust_schedule_length(child1)
-            child2 = adjust_schedule_length(child2)
-
             new_population.extend([child1, child2])
 
         population = new_population
 
     return population[0]
 
-# Main execution for Streamlit
+# Streamlit interface
 st.write("Program Scheduling Optimization")
 
 # Input parameters
 try:
-    CO_R = float(st.text_input("Enter Crossover Rate (0.0 to 0.95, default {default_CO_R}): ") or default_CO_R)
-    MUT_R = float(st.text_input("Enter Mutation Rate (0.01 to 0.05, default {default_MUT_R}): ") or default_MUT_R)
+    CO_R = float(st.text_input("Enter Crossover Rate (0.0 to 0.95, default 0.8): ") or 0.8)
+    MUT_R = float(st.text_input("Enter Mutation Rate (0.01 to 0.05, default 0.02): ") or 0.02)
 
     if not (0.0 <= CO_R <= 0.95) or not (0.01 <= MUT_R <= 0.05):
         raise ValueError("Invalid input range for crossover or mutation rate.")
@@ -121,20 +110,18 @@ else:
     # Run the algorithm
     st.write("Running Genetic Algorithm...")
     best_schedule = genetic_algorithm(
-        initial_schedule, 
-        generations, 
-        population_size, 
-        CO_R, 
-        MUT_R, 
+        initial_schedule,
+        generations,
+        population_size,
+        CO_R,
+        MUT_R,
         elitism_size
     )
 
     # Display results
     st.subheader("Final Optimal Schedule:")
-
-    # Ensure lists are the same length before creating DataFrame
     schedule_data = {
-        "Time Slot": [f"{hour}:00" for hour in range(6, 6 + len(best_schedule))],
+        "Time Slot": all_time_slots,  # Use time slots directly from CSV
         "Program": best_schedule
     }
     df = pd.DataFrame(schedule_data)
