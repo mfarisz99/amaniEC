@@ -85,48 +85,71 @@ def genetic_algorithm(initial_schedule, generations, population_size, CO_R, MUT_
 
     return population[0]
 
-# Streamlit interface
-st.write("Program Scheduling Optimization")
+# Input parameters in Streamlit
+st.write("Genetic Algorithm Parameters")
 
-# Input parameters
+# Default values
+default_CO_R = 0.8
+default_MUT_R = 0.2
+
+# Get user inputs and validate them
 try:
-    CO_R = float(st.text_input("Enter Crossover Rate (0.0 to 0.95, default 0.8): ") or 0.8)
-    MUT_R = float(st.text_input("Enter Mutation Rate (0.01 to 0.05, default 0.02): ") or 0.02)
-
-    if not (0.0 <= CO_R <= 0.95) or not (0.01 <= MUT_R <= 0.05):
-        raise ValueError("Invalid input range for crossover or mutation rate.")
+    # Input for crossover rate
+    CO_R = st.number_input(
+        "Enter Crossover Rate (0.0 to 0.95):",
+        min_value=0.0,
+        max_value=0.95,
+        value=default_CO_R,  # Default value
+        step=0.01
+    )
+    
+    # Input for mutation rate
+    MUT_R = st.number_input(
+        "Enter Mutation Rate (0.0 to 0.05):",
+        min_value=0.0,
+        max_value=0.05,
+        value=default_MUT_R,  # Default value
+        step=0.01
+    )
 except ValueError as e:
     st.error(f"Error: {e}")
-else:
-    # Default parameters
-    generations = 100
-    population_size = 50
-    elitism_size = 2
 
-    # Create initial schedule
-    initial_schedule = all_programs[:len(all_time_slots)]
-    random.shuffle(initial_schedule)
+# Display the chosen values for user confirmation
+st.write(f"**Selected Parameters:**")
+st.write(f"- Crossover Rate (CO_R): {CO_R}")
+st.write(f"- Mutation Rate (MUT_R): {MUT_R}")
 
-    # Run the algorithm
-    st.write("Running Genetic Algorithm...")
-    best_schedule = genetic_algorithm(
-        initial_schedule,
-        generations,
-        population_size,
-        CO_R,
-        MUT_R,
-        elitism_size
-    )
+# Default parameters for genetic algorithm
+generations = 100
+population_size = 50
+elitism_size = 2
 
-    # Display results
-    st.subheader("Final Optimal Schedule:")
-    schedule_data = {
-        "Time Slot": all_time_slots,  # Use time slots directly from CSV
-        "Program": best_schedule
-    }
-    df = pd.DataFrame(schedule_data)
-    st.table(df)
+# Create initial schedule
+initial_schedule = all_programs[:len(all_time_slots)]
+random.shuffle(initial_schedule)
 
-    # Display total ratings
-    total_rating = fitness_function(best_schedule)
-    st.write(f"Total Ratings: {total_rating:.2f}")
+# Run the algorithm
+st.write("Running Genetic Algorithm...")
+best_schedule = genetic_algorithm(
+    initial_schedule, 
+    generations, 
+    population_size, 
+    CO_R, 
+    MUT_R, 
+    elitism_size
+)
+
+# Display results
+st.subheader("Final Optimal Schedule:")
+
+# Ensure lists are the same length before creating DataFrame
+schedule_data = {
+    "Time Slot": [f"{hour}:00" for hour in range(6, 6 + len(best_schedule))],
+    "Program": best_schedule
+}
+df = pd.DataFrame(schedule_data)
+st.table(df)
+
+# Display total ratings
+total_rating = fitness_function(best_schedule)
+st.write(f"Total Ratings: {total_rating:.2f}")
