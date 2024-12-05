@@ -101,8 +101,8 @@ st.write("Program Scheduling Optimization")
 
 # Input parameters
 try:
-    CO_R = float(st.text_input("Enter Crossover Rate (0.0 to 0.95, default 0.80): ") or 0.95)
-    MUT_R = float(st.text_input("Enter Mutation Rate (0.01 to 0.05, default 0.20): ") or 0.05)
+    CO_R = float(st.text_input("Enter Crossover Rate (0.0 to 0.95, default {default_CO_R}): ") or default_CO_R)
+    MUT_R = float(st.text_input("Enter Mutation Rate (0.01 to 0.05, default {default_MUT_R}): ") or default_MUT_R)
 
     if not (0.0 <= CO_R <= 0.95) or not (0.01 <= MUT_R <= 0.05):
         raise ValueError("Invalid input range for crossover or mutation rate.")
@@ -134,7 +134,7 @@ else:
 
     # Ensure lists are the same length before creating DataFrame
     schedule_data = {
-        "Time Slot": [f"{hour}:00" for hour in range(len(best_schedule))],
+        "Time Slot": [f"{hour}:00" for hour in range(6, 6 + len(best_schedule))],
         "Program": best_schedule
     }
     df = pd.DataFrame(schedule_data)
