@@ -114,12 +114,6 @@ try:
 except ValueError as e:
     st.error(f"Error: {e}")
 
-
-# Display the chosen values for user confirmation
-st.write(f"**Selected Parameters:**")
-st.write(f"- Crossover Rate (CO_R): {CO_R}")
-st.write(f"- Mutation Rate (MUT_R): {MUT_R}")
-
 # Default parameters for genetic algorithm
 generations = 100
 population_size = 50
