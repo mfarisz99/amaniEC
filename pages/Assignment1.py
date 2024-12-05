@@ -89,8 +89,8 @@ def genetic_algorithm(initial_schedule, generations, population_size, CO_R, MUT_
 st.write("Genetic Algorithm Parameters")
 
 # Default values
-default_CO_R = 0.8
-default_MUT_R = 0.2
+default_CO_R = 0.8  # Within range [0.0, 0.95]
+default_MUT_R = 0.02  # Within range [0.0, 0.05] (adjusted to be within the valid range)
 
 # Get user inputs and validate them
 try:
@@ -108,11 +108,12 @@ try:
         "Enter Mutation Rate (0.0 to 0.05):",
         min_value=0.0,
         max_value=0.05,
-        value=default_MUT_R,  # Default value
+        value=default_MUT_R,  # Default value (fixed to fit the valid range)
         step=0.01
     )
 except ValueError as e:
     st.error(f"Error: {e}")
+
 
 # Display the chosen values for user confirmation
 st.write(f"**Selected Parameters:**")
