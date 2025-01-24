@@ -11,3 +11,4 @@ pandas
 opencv-contrib-python-headless
 graphviz
 plotly
+streamlit run app.py
