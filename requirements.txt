@@ -9,6 +9,3 @@ opencv-python-headless
 opencv-contrib-python
 pandas
 opencv-contrib-python-headless
-graphviz
-plotly
-streamlit run app.py
