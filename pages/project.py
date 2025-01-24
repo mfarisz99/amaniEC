@@ -138,8 +138,6 @@ if uploaded_file is not None:
             ax1.text(coord[0], coord[1], str(task + 1), fontsize=9, ha='center', va='center')
 
         ax1.set_title("Best Ant Colony Path for Machine 1")
-        ax1.set_xlabel("X Coordinates")
-        ax1.set_ylabel("Y Coordinates")
         st.pyplot(fig1)
 
         # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik untuk Mesin 2
@@ -157,8 +155,6 @@ if uploaded_file is not None:
             ax2.text(coord[0], coord[1], str(task + 1), fontsize=9, ha='center', va='center')
 
         ax2.set_title("Best Ant Colony Path for Machine 2")
-        ax2.set_xlabel("X Coordinates")
-        ax2.set_ylabel("Y Coordinates")
         st.pyplot(fig2)
 
         # Plotting Fitness Trends
