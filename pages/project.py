@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-import networkx as nx
+import matplotlib.colors as mcolors
 
 # Fungsi untuk memuat dataset
 @st.cache_data
@@ -78,47 +78,7 @@ def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORA
         # Store fitness trends for visualization
         fitness_trends.append(best_fitness)
 
-    return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2, pheromone
-
-# Fungsi untuk visualisasi perjalanan ant colony untuk dua mesin
-def visualize_ant_colony(solution, num_tasks, pheromone):
-    # Create a graph to visualize the ant colony
-    G_machine_1 = nx.DiGraph()  # Untuk mesin 1
-    G_machine_2 = nx.DiGraph()  # Untuk mesin 2
-    
-    # Add nodes for each task
-    for task in range(num_tasks):
-        G_machine_1.add_node(task, label=f"Task {task+1}")
-        G_machine_2.add_node(task, label=f"Task {task+1}")
-    
-    # Add edges for machine 1 and machine 2
-    for i in range(len(solution) - 1):
-        if solution[i] == 0 and solution[i + 1] == 0:  # Mesin 1
-            pheromone_strength = pheromone[i, 0]
-            G_machine_1.add_edge(i, i+1, weight=pheromone_strength)
-        elif solution[i] == 1 and solution[i + 1] == 1:  # Mesin 2
-            pheromone_strength = pheromone[i, 1]
-            G_machine_2.add_edge(i, i+1, weight=pheromone_strength)
-
-    # Create two plots for Machine 1 and Machine 2 paths
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 8))
-    
-    # Plot Machine 1 Path
-    edge_weights_1 = nx.get_edge_attributes(G_machine_1, 'weight')
-    pos = nx.spring_layout(G_machine_1)
-    nx.draw(G_machine_1, pos, with_labels=True, node_size=700, node_color='lightblue', font_size=10, font_weight='bold', edge_color='red', width=2, ax=ax1)
-    nx.draw_networkx_edge_labels(G_machine_1, pos, edge_labels=edge_weights_1, font_size=8, ax=ax1)
-    ax1.set_title("Machine 1 Path (Ant Colony)")
-    
-    # Plot Machine 2 Path
-    edge_weights_2 = nx.get_edge_attributes(G_machine_2, 'weight')
-    nx.draw(G_machine_2, pos, with_labels=True, node_size=700, node_color='lightgreen', font_size=10, font_weight='bold', edge_color='blue', width=2, ax=ax2)
-    nx.draw_networkx_edge_labels(G_machine_2, pos, edge_labels=edge_weights_2, font_size=8, ax=ax2)
-    ax2.set_title("Machine 2 Path (Ant Colony)")
-    
-    # Display the plot
-    plt.tight_layout()
-    plt.show()
+    return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2
 
 # Memuat dataset
 st.title("Flowshop Scheduling Optimization with ACO")
@@ -145,7 +105,7 @@ if uploaded_file is not None:
 
     # Menunjukkan Aliran Kerja (Workflow) dalam bentuk teks dan imej
     if st.button("Run ACO Optimization"):
-        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2, pheromone = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
+        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
 
         # Paparan hasil terbaik dalam bentuk jadual
         st.subheader("Best Solution (Machine Allocation for Each Task)")
@@ -163,8 +123,43 @@ if uploaded_file is not None:
         })
         st.table(processing_time_df)
 
-        # Visualisasi perjalanan ant colony untuk mesin 1 dan mesin 2
-        visualize_ant_colony(best_solution, len(best_solution), pheromone)
+        # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik untuk Mesin 1
+        st.subheader("Best Ant Colony Path Visualization for Machine 1")
+        fig1, ax1 = plt.subplots(figsize=(8, 6))
+        coordinates_machine_1 = {i: (random.randint(0, 10), random.randint(0, 10)) for i in range(len(best_solution))}
+        for i in range(len(best_solution) - 1):
+            x_coords = [coordinates_machine_1[i][0], coordinates_machine_1[i + 1][0]]
+            y_coords = [coordinates_machine_1[i][1], coordinates_machine_1[i + 1][1]]
+            
+            if best_solution[i] == 0 and best_solution[i + 1] == 0:  # Mesin 1
+                ax1.plot(x_coords, y_coords, marker='o', color='red')  # Merah untuk Mesin 1
+
+        for task, coord in coordinates_machine_1.items():
+            ax1.text(coord[0], coord[1], str(task + 1), fontsize=9, ha='center', va='center')
+
+        ax1.set_title("Best Ant Colony Path for Machine 1")
+        ax1.set_xlabel("X Coordinates")
+        ax1.set_ylabel("Y Coordinates")
+        st.pyplot(fig1)
+
+        # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik untuk Mesin 2
+        st.subheader("Best Ant Colony Path Visualization for Machine 2")
+        fig2, ax2 = plt.subplots(figsize=(8, 6))
+        coordinates_machine_2 = {i: (random.randint(0, 10), random.randint(0, 10)) for i in range(len(best_solution))}
+        for i in range(len(best_solution) - 1):
+            x_coords = [coordinates_machine_2[i][0], coordinates_machine_2[i + 1][0]]
+            y_coords = [coordinates_machine_2[i][1], coordinates_machine_2[i + 1][1]]
+            
+            if best_solution[i] == 1 and best_solution[i + 1] == 1:  # Mesin 2
+                ax2.plot(x_coords, y_coords, marker='s', color='blue')  # Biru untuk Mesin 2
+
+        for task, coord in coordinates_machine_2.items():
+            ax2.text(coord[0], coord[1], str(task + 1), fontsize=9, ha='center', va='center')
+
+        ax2.set_title("Best Ant Colony Path for Machine 2")
+        ax2.set_xlabel("X Coordinates")
+        ax2.set_ylabel("Y Coordinates")
+        st.pyplot(fig2)
 
         # Plotting Fitness Trends
         st.subheader("Fitness Trend Over Iterations")
