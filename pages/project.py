@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import random
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
@@ -23,7 +22,6 @@ def generate_solution(pheromone, num_tasks, num_machines):
 
 # Fungsi untuk mengira kecergasan (fitness) penyelesaian
 def calculate_fitness(solution, data):
-    total_time = 0
     processing_time_machine_1 = 0
     processing_time_machine_2 = 0
     for i, machine in enumerate(solution):
@@ -31,7 +29,7 @@ def calculate_fitness(solution, data):
             processing_time_machine_1 += data["Processing_Time_Machine_1"][i] + data["Setup_Time_Machine_1"][i]
         else:
             processing_time_machine_2 += data["Processing_Time_Machine_2"][i] + data["Setup_Time_Machine_2"][i]
-    total_time = processing_time_machine_1 + processing_time_machine_2
+    total_time = max(processing_time_machine_1, processing_time_machine_2)
     return total_time, processing_time_machine_1, processing_time_machine_2
 
 # Fungsi untuk mengemas kini feromon
@@ -46,7 +44,7 @@ def update_pheromone(pheromone, solutions, fitness_values, EVAPORATION_RATE, Q):
     return pheromone
 
 # Fungsi untuk pengoptimuman ACO
-def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE):
+def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, EVAPORATION_RATE, Q):
     num_tasks = len(data)  # Bilangan tugas dalam jadual
     num_machines = 2  # Bilangan mesin dalam masalah Flowshop
 
@@ -56,12 +54,12 @@ def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORA
     best_fitness = np.inf
     fitness_trends = []
 
-    for iteration in range(NUM_ITERATIONS):
+    for _ in range(NUM_ITERATIONS):
         iteration_solutions = []
         iteration_fitness = []
 
         # Generate solutions for each ant
-        for ant in range(NUM_ANTS):
+        for _ in range(NUM_ANTS):
             solution = generate_solution(pheromone, num_tasks, num_machines)
             fitness_value, processing_time_machine_1, processing_time_machine_2 = calculate_fitness(solution, data)
             iteration_solutions.append(solution)
@@ -78,7 +76,7 @@ def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORA
         # Store fitness trends for visualization
         fitness_trends.append(best_fitness)
 
-    return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2
+    return best_solution, fitness_trends, best_fitness
 
 # Memuat dataset
 st.title("Flowshop Scheduling Optimization with ACO")
@@ -89,23 +87,20 @@ if uploaded_file is not None:
     st.write("Dataset Preview:")
     st.dataframe(data.head())
 
-    # Parameter ACO (pindahkan ke paparan utama)
+    # Parameter ACO
     col1, col2 = st.columns(2)
 
     with col1:
         NUM_ANTS = st.number_input("Number of Ants", min_value=10, max_value=200, value=50, step=10)
         NUM_ITERATIONS = st.number_input("Number of Iterations", min_value=10, max_value=500, value=100, step=10)
-        ALPHA = st.slider("Pheromone Importance (Alpha)", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
-        BETA = st.slider("Heuristic Importance (Beta)", min_value=0.1, max_value=5.0, value=2.0, step=0.1)
 
     with col2:
         EVAPORATION_RATE = st.slider("Evaporation Rate", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
         Q = st.number_input("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100, step=10)
-        MUT_RATE = st.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2, step=0.05)
 
-    # Menunjukkan Aliran Kerja (Workflow) dalam bentuk teks dan imej
+    # Menjalankan ACO dan visualisasi
     if st.button("Run ACO Optimization"):
-        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
+        best_solution, fitness_trends, best_fitness = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, EVAPORATION_RATE, Q)
 
         # Paparan hasil terbaik dalam bentuk jadual
         st.subheader("Best Solution (Machine Allocation for Each Task)")
@@ -115,37 +110,22 @@ if uploaded_file is not None:
         })
         st.table(solution_df)
 
-        # Paparan masa pemprosesan bagi setiap mesin
-        st.subheader("Processing Time for Each Machine")
-        processing_time_df = pd.DataFrame({
-            "Machine 1 Processing Time": [processing_time_machine_1],
-            "Machine 2 Processing Time": [processing_time_machine_2]
-        })
-        st.table(processing_time_df)
-
-        # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik sahaja
-        st.subheader("Best Ant Colony Path Visualization")
+        # Visualisasi terbaik sahaja
+        st.subheader("Best Solution Path Visualization")
         fig, ax = plt.subplots(figsize=(8, 6))
 
-        # Tetapkan koordinat (contoh) untuk setiap tugas (anda boleh menyesuaikan koordinat jika perlu)
-        coordinates = {
-            i: (random.randint(0, 10), random.randint(0, 10)) for i in range(len(best_solution))
-        }
+        # Warna untuk visualisasi
+        task_numbers = np.arange(len(best_solution))  # x-axis: Task Index
+        ax.plot(task_numbers, best_solution, marker='o', linestyle='-', color='blue', label='Best Solution')  # Best Solution Path
 
-        # Lukiskan perjalanan semut terbaik
-        for i in range(len(best_solution) - 1):
-            x_coords = [coordinates[i][0], coordinates[i + 1][0]]
-            y_coords = [coordinates[i][1], coordinates[i + 1][1]]
-            color = 'red' if best_solution[i] != best_solution[i + 1] else 'black'
-            ax.plot(x_coords, y_coords, marker='o', color=color)
+        # Hiasan graf
+        ax.set_title("Best Solution Path Visualization")
+        ax.set_xlabel("Task Index")
+        ax.set_ylabel("Machine Assigned (0 = Machine 1, 1 = Machine 2)")
+        ax.legend()
+        ax.grid(True, linestyle='--', alpha=0.7)
 
-        # Tambah label untuk setiap titik
-        for task, coord in coordinates.items():
-            ax.text(coord[0], coord[1], str(task + 1), fontsize=9, ha='center', va='center')
-
-        ax.set_title("Best Ant Colony Path Visualization")
-        ax.set_xlabel("X Coordinates")
-        ax.set_ylabel("Y Coordinates")
+        # Paparkan plot
         st.pyplot(fig)
 
         # Plotting Fitness Trends
