@@ -88,15 +88,20 @@ def visualize_ant_colony(solution, num_tasks, pheromone):
     for task in range(num_tasks):
         G.add_node(task, label=f"Task {task+1}")
     
+    # Add edges based on the solution and pheromone values
     for i in range(len(solution) - 1):
         if solution[i] == solution[i+1]:
-            G.add_edge(i, i+1, weight=pheromone[i, solution[i]])
-
+            # Highlight pheromone strength
+            pheromone_strength = pheromone[i, solution[i]]
+            G.add_edge(i, i+1, weight=pheromone_strength)
+    
     pos = nx.spring_layout(G)
     edge_weights = nx.get_edge_attributes(G, 'weight')
 
+    # Plot the graph
     plt.figure(figsize=(8, 6))
-    nx.draw(G, pos, with_labels=True, node_size=500, node_color='lightblue', font_size=10, font_weight='bold', edge_color='gray', width=1)
+    node_labels = nx.get_node_attributes(G, 'label')
+    nx.draw(G, pos, with_labels=True, node_size=500, node_color='lightblue', font_size=10, font_weight='bold', edge_color='gray', width=2)
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_weights, font_size=8)
     plt.title("Ant Colony Path Visualization")
     plt.show()
