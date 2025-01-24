@@ -127,17 +127,25 @@ if uploaded_file is not None:
         st.subheader("Best Ant Colony Path Visualization")
         fig, ax = plt.subplots(figsize=(8, 6))
 
-        # Warna untuk visualisasi
-        colors = list(mcolors.TABLEAU_COLORS)
+        # Tetapkan koordinat (contoh) untuk setiap tugas (anda boleh menyesuaikan koordinat jika perlu)
+        coordinates = {
+            i: (random.randint(0, 10), random.randint(0, 10)) for i in range(len(best_solution))
+        }
 
-        # Visualisasi perjalanan semut terbaik
-        task_numbers = np.arange(len(best_solution))
-        ax.plot(task_numbers, best_solution, marker='o', color='blue', label='Best Solution')
+        # Lukiskan perjalanan semut terbaik
+        for i in range(len(best_solution) - 1):
+            x_coords = [coordinates[i][0], coordinates[i + 1][0]]
+            y_coords = [coordinates[i][1], coordinates[i + 1][1]]
+            color = 'red' if best_solution[i] != best_solution[i + 1] else 'black'
+            ax.plot(x_coords, y_coords, marker='o', color=color)
+
+        # Tambah label untuk setiap titik
+        for task, coord in coordinates.items():
+            ax.text(coord[0], coord[1], str(task + 1), fontsize=9, ha='center', va='center')
 
         ax.set_title("Best Ant Colony Path Visualization")
-        ax.set_xlabel("Task Index")
-        ax.set_ylabel("Machine Index")
-        ax.legend()
+        ax.set_xlabel("X Coordinates")
+        ax.set_ylabel("Y Coordinates")
         st.pyplot(fig)
 
         # Plotting Fitness Trends
