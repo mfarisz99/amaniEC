@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import random
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
 
 # Fungsi untuk memuat dataset
 @st.cache_data
@@ -117,35 +116,30 @@ if uploaded_file is not None:
 
         # Paparan masa pemprosesan bagi setiap mesin
         st.subheader("Processing Time for Each Machine")
+
         processing_time_df = pd.DataFrame({
-            "Machine 1 Processing Time": [processing_time_machine_1],
-            "Machine 2 Processing Time": [processing_time_machine_2]
+            "Machine": ["Machine 1", "Machine 2"],
+            "Processing Time": [processing_time_machine_1, processing_time_machine_2]
         })
         st.table(processing_time_df)
 
-        # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik sahaja
-        st.subheader("Best Ant Colony Path Visualization")
-        fig, ax = plt.subplots(figsize=(8, 6))
+        # Visualisasi masa pemprosesan sebagai carta bar
+        st.subheader("Processing Time Visualization")
 
-        # Tetapkan koordinat (contoh) untuk setiap tugas (anda boleh menyesuaikan koordinat jika perlu)
-        coordinates = {
-            i: (random.randint(0, 10), random.randint(0, 10)) for i in range(len(best_solution))
-        }
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.bar(
+            processing_time_df["Machine"],
+            processing_time_df["Processing Time"],
+            color=["blue", "orange"]
+        )
 
-        # Lukiskan perjalanan semut terbaik
-        for i in range(len(best_solution) - 1):
-            x_coords = [coordinates[i][0], coordinates[i + 1][0]]
-            y_coords = [coordinates[i][1], coordinates[i + 1][1]]
-            color = 'red' if best_solution[i] != best_solution[i + 1] else 'black'
-            ax.plot(x_coords, y_coords, marker='o', color=color)
+        # Menambah label pada carta
+        ax.set_title("Processing Time per Machine")
+        ax.set_ylabel("Processing Time")
+        ax.set_xlabel("Machine")
+        for i, v in enumerate(processing_time_df["Processing Time"]):
+            ax.text(i, v + 2, f"{v:.2f}", ha='center', fontsize=10)
 
-        # Tambah label untuk setiap titik
-        for task, coord in coordinates.items():
-            ax.text(coord[0], coord[1], str(task + 1), fontsize=9, ha='center', va='center')
-
-        ax.set_title("Best Ant Colony Path Visualization")
-        ax.set_xlabel("X Coordinates")
-        ax.set_ylabel("Y Coordinates")
         st.pyplot(fig)
 
         # Plotting Fitness Trends
