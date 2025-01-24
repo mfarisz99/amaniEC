@@ -55,7 +55,6 @@ def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORA
     best_solution = None
     best_fitness = np.inf
     fitness_trends = []
-    all_solutions = []
 
     for iteration in range(NUM_ITERATIONS):
         iteration_solutions = []
@@ -78,9 +77,8 @@ def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORA
 
         # Store fitness trends for visualization
         fitness_trends.append(best_fitness)
-        all_solutions.append(iteration_solutions)
 
-    return best_solution, fitness_trends, all_solutions, processing_time_machine_1, processing_time_machine_2
+    return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2
 
 # Memuat dataset
 st.title("Flowshop Scheduling Optimization with ACO")
@@ -107,7 +105,7 @@ if uploaded_file is not None:
 
     # Menunjukkan Aliran Kerja (Workflow) dalam bentuk teks dan imej
     if st.button("Run ACO Optimization"):
-        best_solution, fitness_trends, all_solutions, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
+        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
 
         # Paparan hasil terbaik dalam bentuk jadual
         st.subheader("Best Solution (Machine Allocation for Each Task)")
@@ -125,22 +123,21 @@ if uploaded_file is not None:
         })
         st.table(processing_time_df)
 
-        # Visualisasi Ant Colony: Paparkan perjalanan semut
-        st.subheader("Ant Colony Path Visualization")
+        # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik sahaja
+        st.subheader("Best Ant Colony Path Visualization")
         fig, ax = plt.subplots(figsize=(8, 6))
 
         # Warna untuk visualisasi
         colors = list(mcolors.TABLEAU_COLORS)
 
-        # Visualisasi perjalanan semut
-        for ant_solutions in all_solutions:
-            for solution in ant_solutions:
-                task_numbers = np.arange(len(solution))
-                ax.plot(task_numbers, solution, marker='o', color=random.choice(colors), alpha=0.5)
+        # Visualisasi perjalanan semut terbaik
+        task_numbers = np.arange(len(best_solution))
+        ax.plot(task_numbers, best_solution, marker='o', color='blue', label='Best Solution')
 
-        ax.set_title("Ant Colony Path Visualization")
+        ax.set_title("Best Ant Colony Path Visualization")
         ax.set_xlabel("Task Index")
         ax.set_ylabel("Machine Index")
+        ax.legend()
         st.pyplot(fig)
 
         # Plotting Fitness Trends
