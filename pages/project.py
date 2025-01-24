@@ -7,7 +7,7 @@ from io import BytesIO
 from PIL import Image
 
 # Fungsi untuk memuat dataset
-@st.cache_data
+@st.cache
 def load_data(filepath):
     return pd.read_csv(filepath)
 
