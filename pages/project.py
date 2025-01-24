@@ -5,7 +5,6 @@ import random
 import plotly.graph_objects as go
 
 # Fungsi untuk memuat dataset
-@st.cache_data
 def load_data(filepath):
     return pd.read_csv(filepath)
 
@@ -20,18 +19,16 @@ with st.sidebar:
         st.write("Dataset Preview:")
         st.dataframe(data.head())
 
-        # Parameter ACO
-        NUM_ANTS = st.number_input("Number of Ants", min_value=10, max_value=200, value=50, step=10)
-        NUM_ITERATIONS = st.number_input("Number of Iterations", min_value=10, max_value=500, value=100, step=10)
-        ALPHA = st.slider("Pheromone Importance (Alpha)", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
-        BETA = st.slider("Heuristic Importance (Beta)", min_value=0.1, max_value=5.0, value=2.0, step=0.1)
-        EVAPORATION_RATE = st.slider("Evaporation Rate", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
-        Q = st.number_input("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100, step=10)
-        MUT_RATE = st.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2, step=0.05)
-    else:
-        st.warning("Please upload a CSV file to proceed.")
+    # Parameter ACO
+    NUM_ANTS = st.number_input("Number of Ants", min_value=10, max_value=200, value=50, step=10)
+    NUM_ITERATIONS = st.number_input("Number of Iterations", min_value=10, max_value=500, value=100, step=10)
+    ALPHA = st.slider("Pheromone Importance (Alpha)", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
+    BETA = st.slider("Heuristic Importance (Beta)", min_value=0.1, max_value=5.0, value=2.0, step=0.1)
+    EVAPORATION_RATE = st.slider("Evaporation Rate", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
+    Q = st.number_input("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100, step=10)
+    MUT_RATE = st.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2, step=0.05)
 
-# Pastikan dataset dimuat dengan betul
+# Periksa jika dataset dimuat naik dan proses ACO boleh dijalankan
 if uploaded_file is not None:
     # Parameter untuk bounds optimization
     bounds = {
@@ -144,3 +141,6 @@ if uploaded_file is not None:
                           template='plotly_dark')
 
         st.plotly_chart(fig)
+
+else:
+    st.warning("Please upload a valid CSV file to begin.")
