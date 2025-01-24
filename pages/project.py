@@ -7,27 +7,34 @@ import matplotlib.pyplot as plt
 # Configure Streamlit page layout
 st.set_page_config(page_title="Ant Colony Optimization", layout="wide")
 
-# Sidebar for parameters
-st.sidebar.header("Ant Colony Optimization Parameters")
-num_ants = st.sidebar.slider("Number of Ants", 1, 100, 10)
-num_iterations = st.sidebar.slider("Number of Iterations", 1, 200, 100)
-alpha = st.sidebar.slider("Alpha (pheromone weight)", 0.0, 10.0, 1.0)
-beta = st.sidebar.slider("Beta (heuristic weight)", 0.0, 10.0, 2.0)
-evaporation_rate = st.sidebar.slider("Rho (evaporation rate)", 0.0, 1.0, 0.5)
-set_seed = st.sidebar.checkbox("Set seed", value=False)
-seed_value = st.sidebar.number_input("Seed", min_value=0, max_value=100, value=0)
+# Header
+st.title("Ant Colony Optimization for Optimal Path")
+
+# Input parameters on the main page
+st.subheader("Ant Colony Optimization Parameters")
+col1, col2 = st.columns(2)
+
+with col1:
+    num_ants = st.slider("Number of Ants", 1, 100, 10)
+    num_iterations = st.slider("Number of Iterations", 1, 200, 100)
+    alpha = st.slider("Alpha (pheromone weight)", 0.0, 10.0, 1.0)
+
+with col2:
+    beta = st.slider("Beta (heuristic weight)", 0.0, 10.0, 2.0)
+    evaporation_rate = st.slider("Rho (evaporation rate)", 0.0, 1.0, 0.5)
+    set_seed = st.checkbox("Set seed", value=False)
+    seed_value = st.number_input("Seed", min_value=0, max_value=100, value=0)
 
 if set_seed:
     random.seed(seed_value)
     np.random.seed(seed_value)
 
 # Generate random points as an example dataset
-num_points = st.sidebar.slider("Number of Points", 5, 20, 10)
+st.subheader("Generated Points")
+num_points = st.slider("Number of Points", 5, 20, 10)
 coordinates = np.random.rand(num_points, 2) * 100  # Random (x, y) coordinates
 points = {i: tuple(coordinates[i]) for i in range(num_points)}
-
-st.sidebar.write("Generated Points:")
-st.sidebar.write(points)
+st.write(points)
 
 # ACO initialization
 pheromone = np.ones((num_points, num_points))
@@ -81,17 +88,15 @@ def ant_colony_optimization():
     return best_path, best_distance
 
 # Run the optimization
-st.header("Ant Colony Optimization for Optimal Path")
+st.subheader("Optimization Results")
 best_path, best_distance = ant_colony_optimization()
 
-# Display best path and its total distance
-st.subheader("Optimal Path")
-optimal_coordinates = [points[node] for node in best_path]
+# Display the optimal path as text
 st.write(f"The optimal path is: {best_path}")
-st.write(f"Coordinates for the optimal path: {optimal_coordinates}")
 st.write(f"Best distance for the optimal path: {best_distance:.2f} meters")
 
 # Visualize the optimal path
+st.subheader("Path Visualization")
 fig, ax = plt.subplots(figsize=(10, 5))
 for i, coord in points.items():
     ax.scatter(*coord, label=f"Point {i}")
