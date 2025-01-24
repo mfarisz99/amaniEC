@@ -11,7 +11,7 @@ def load_data(filepath):
     return data
 
 # Load dataset
-data = load_data("/content/flowshop_scheduling_dataset.csv")
+data = load_data('/content/flowshop_scheduling_dataset.csv')
 
 # Paparkan data
 st.title("Ant Colony Optimization for Flow Shop Scheduling")
