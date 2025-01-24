@@ -80,30 +80,44 @@ def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORA
 
     return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2, pheromone
 
-# Fungsi untuk visualisasi perjalanan ant colony
+# Fungsi untuk visualisasi perjalanan ant colony untuk dua mesin
 def visualize_ant_colony(solution, num_tasks, pheromone):
     # Create a graph to visualize the ant colony
-    G = nx.Graph()
+    G_machine_1 = nx.DiGraph()  # Untuk mesin 1
+    G_machine_2 = nx.DiGraph()  # Untuk mesin 2
     
+    # Add nodes for each task
     for task in range(num_tasks):
-        G.add_node(task, label=f"Task {task+1}")
+        G_machine_1.add_node(task, label=f"Task {task+1}")
+        G_machine_2.add_node(task, label=f"Task {task+1}")
     
-    # Add edges based on the solution and pheromone values
+    # Add edges for machine 1 and machine 2
     for i in range(len(solution) - 1):
-        if solution[i] == solution[i+1]:
-            # Highlight pheromone strength
-            pheromone_strength = pheromone[i, solution[i]]
-            G.add_edge(i, i+1, weight=pheromone_strength)
-    
-    pos = nx.spring_layout(G)
-    edge_weights = nx.get_edge_attributes(G, 'weight')
+        if solution[i] == 0 and solution[i + 1] == 0:  # Mesin 1
+            pheromone_strength = pheromone[i, 0]
+            G_machine_1.add_edge(i, i+1, weight=pheromone_strength)
+        elif solution[i] == 1 and solution[i + 1] == 1:  # Mesin 2
+            pheromone_strength = pheromone[i, 1]
+            G_machine_2.add_edge(i, i+1, weight=pheromone_strength)
 
-    # Plot the graph
-    plt.figure(figsize=(8, 6))
-    node_labels = nx.get_node_attributes(G, 'label')
-    nx.draw(G, pos, with_labels=True, node_size=500, node_color='lightblue', font_size=10, font_weight='bold', edge_color='gray', width=2)
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_weights, font_size=8)
-    plt.title("Ant Colony Path Visualization")
+    # Create two plots for Machine 1 and Machine 2 paths
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 8))
+    
+    # Plot Machine 1 Path
+    edge_weights_1 = nx.get_edge_attributes(G_machine_1, 'weight')
+    pos = nx.spring_layout(G_machine_1)
+    nx.draw(G_machine_1, pos, with_labels=True, node_size=700, node_color='lightblue', font_size=10, font_weight='bold', edge_color='red', width=2, ax=ax1)
+    nx.draw_networkx_edge_labels(G_machine_1, pos, edge_labels=edge_weights_1, font_size=8, ax=ax1)
+    ax1.set_title("Machine 1 Path (Ant Colony)")
+    
+    # Plot Machine 2 Path
+    edge_weights_2 = nx.get_edge_attributes(G_machine_2, 'weight')
+    nx.draw(G_machine_2, pos, with_labels=True, node_size=700, node_color='lightgreen', font_size=10, font_weight='bold', edge_color='blue', width=2, ax=ax2)
+    nx.draw_networkx_edge_labels(G_machine_2, pos, edge_labels=edge_weights_2, font_size=8, ax=ax2)
+    ax2.set_title("Machine 2 Path (Ant Colony)")
+    
+    # Display the plot
+    plt.tight_layout()
     plt.show()
 
 # Memuat dataset
@@ -149,7 +163,7 @@ if uploaded_file is not None:
         })
         st.table(processing_time_df)
 
-        # Visualisasi perjalanan ant colony
+        # Visualisasi perjalanan ant colony untuk mesin 1 dan mesin 2
         visualize_ant_colony(best_solution, len(best_solution), pheromone)
 
         # Plotting Fitness Trends
