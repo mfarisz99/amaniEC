@@ -9,6 +9,74 @@ import matplotlib.pyplot as plt
 def load_data(filepath):
     return pd.read_csv(filepath)
 
+# Fungsi untuk menjana penyelesaian (solusi) berdasarkan feromon
+def generate_solution(pheromone, num_tasks, num_machines):
+    solution = []
+    for task in range(num_tasks):
+        probabilities = pheromone[task, :]  # Dapatkan nilai feromon bagi tugas
+        total_pheromone = sum(probabilities)
+        probabilities = [p / total_pheromone for p in probabilities]  # Normalisasi kepada kebarangkalian
+        chosen_machine = np.random.choice(num_machines, p=probabilities)  # Pilih mesin berdasarkan kebarangkalian
+        solution.append(chosen_machine)
+    return solution
+
+# Fungsi untuk mengira kecergasan (fitness) penyelesaian
+def calculate_fitness(solution, data):
+    total_time = 0
+    for i, machine in enumerate(solution):
+        if machine == 0:
+            total_time += data["Processing_Time_Machine_1"][i] + data["Setup_Time_Machine_1"][i]
+        else:
+            total_time += data["Processing_Time_Machine_2"][i] + data["Setup_Time_Machine_2"][i]
+    return total_time
+
+# Fungsi untuk mengemas kini feromon
+def update_pheromone(pheromone, solutions, fitness_values, EVAPORATION_RATE, Q):
+    # Penguapan feromon
+    pheromone *= (1 - EVAPORATION_RATE)
+
+    # Deposit feromon berdasarkan penyelesaian terbaik
+    for solution, fitness_value in zip(solutions, fitness_values):
+        for task, machine in enumerate(solution):
+            pheromone[task, machine] += Q / fitness_value
+    return pheromone
+
+# Fungsi untuk pengoptimuman ACO
+def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE):
+    num_tasks = len(data)  # Bilangan tugas dalam jadual
+    num_machines = 2  # Bilangan mesin dalam masalah Flowshop
+
+    # Inisialisasi feromon
+    pheromone = np.ones((num_tasks, num_machines))  # Matrix feromon awal
+    best_solution = None
+    best_fitness = np.inf
+    fitness_trends = []
+
+    for iteration in range(NUM_ITERATIONS):
+        all_solutions = []
+        all_fitness_values = []
+
+        # Generate solutions for each ant
+        for ant in range(NUM_ANTS):
+            solution = generate_solution(pheromone, num_tasks, num_machines)
+            fitness_value = calculate_fitness(solution, data)
+
+            all_solutions.append(solution)
+            all_fitness_values.append(fitness_value)
+
+            # Update best solution
+            if fitness_value < best_fitness:
+                best_solution = solution
+                best_fitness = fitness_value
+
+        # Update pheromone levels based on fitness values
+        pheromone = update_pheromone(pheromone, all_solutions, all_fitness_values, EVAPORATION_RATE, Q)
+
+        # Store fitness trends for visualization
+        fitness_trends.append(best_fitness)
+
+    return best_solution, fitness_trends
+
 # Memuat dataset
 st.title("Flowshop Scheduling Optimization with ACO")
 
@@ -32,20 +100,18 @@ if uploaded_file is not None:
         Q = st.number_input("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100, step=10)
         MUT_RATE = st.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2, step=0.05)
 
-    # Define bounds for optimization
-    bounds = {
-        "Processing_Time_Machine_1": (data["Processing_Time_Machine_1"].min(), data["Processing_Time_Machine_1"].max()),
-        "Processing_Time_Machine_2": (data["Processing_Time_Machine_2"].min(), data["Processing_Time_Machine_2"].max()),
-        "Setup_Time_Machine_1": (data["Setup_Time_Machine_1"].min(), data["Setup_Time_Machine_1"].max()),
-        "Setup_Time_Machine_2": (data["Setup_Time_Machine_2"].min(), data["Setup_Time_Machine_2"].max()),
-    }
-
-    # Fungsi-fungsi lain masih sama...
-
     # Menunjukkan Aliran Kerja (Workflow) dalam bentuk teks dan imej
     if st.button("Run ACO Optimization"):
-        best_solution, fitness_trends = ant_colony_optimization()
+        best_solution, fitness_trends = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
 
         # Paparan hasil terbaik
         st.subheader("Best Solution")
         st.write(best_solution)
+
+        # Plotting Fitness Trends
+        st.subheader("Fitness Trend Over Iterations")
+        plt.plot(fitness_trends)
+        plt.xlabel("Iterations")
+        plt.ylabel("Fitness")
+        plt.title("ACO Optimization Fitness Trend")
+        st.pyplot(plt)
