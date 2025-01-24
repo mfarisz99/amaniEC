@@ -3,110 +3,151 @@ import pandas as pd
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
-# Configure Streamlit page layout
-st.set_page_config(page_title="Ant Colony Optimization", layout="wide")
+# Fungsi untuk memuat dataset
+@st.cache_data
+def load_data(filepath):
+    return pd.read_csv(filepath)
 
-# Header
-st.title("Ant Colony Optimization for Optimal Path")
+# Fungsi untuk menjana penyelesaian (solusi) berdasarkan feromon
+def generate_solution(pheromone, num_tasks, num_machines):
+    solution = []
+    for task in range(num_tasks):
+        probabilities = pheromone[task, :]  # Dapatkan nilai feromon bagi tugas
+        total_pheromone = sum(probabilities)
+        probabilities = [p / total_pheromone for p in probabilities]  # Normalisasi kepada kebarangkalian
+        chosen_machine = np.random.choice(num_machines, p=probabilities)  # Pilih mesin berdasarkan kebarangkalian
+        solution.append(chosen_machine)
+    return solution
 
-# Input parameters on the main page
-st.subheader("Ant Colony Optimization Parameters")
-col1, col2 = st.columns(2)
+# Fungsi untuk mengira kecergasan (fitness) penyelesaian
+def calculate_fitness(solution, data):
+    total_time = 0
+    processing_time_machine_1 = 0
+    processing_time_machine_2 = 0
+    for i, machine in enumerate(solution):
+        if machine == 0:
+            processing_time_machine_1 += data["Processing_Time_Machine_1"][i] + data["Setup_Time_Machine_1"][i]
+        else:
+            processing_time_machine_2 += data["Processing_Time_Machine_2"][i] + data["Setup_Time_Machine_2"][i]
+    total_time = processing_time_machine_1 + processing_time_machine_2
+    return total_time, processing_time_machine_1, processing_time_machine_2
 
-with col1:
-    num_ants = st.slider("Number of Ants", 1, 100, 10)
-    num_iterations = st.slider("Number of Iterations", 1, 200, 100)
-    alpha = st.slider("Alpha (pheromone weight)", 0.0, 10.0, 1.0)
+# Fungsi untuk mengemas kini feromon
+def update_pheromone(pheromone, solutions, fitness_values, EVAPORATION_RATE, Q):
+    # Penguapan feromon
+    pheromone *= (1 - EVAPORATION_RATE)
 
-with col2:
-    beta = st.slider("Beta (heuristic weight)", 0.0, 10.0, 2.0)
-    evaporation_rate = st.slider("Rho (evaporation rate)", 0.0, 1.0, 0.5)
-    set_seed = st.checkbox("Set seed", value=False)
-    seed_value = st.number_input("Seed", min_value=0, max_value=100, value=0)
+    # Deposit feromon berdasarkan penyelesaian terbaik
+    for solution, fitness_value in zip(solutions, fitness_values):
+        for task, machine in enumerate(solution):
+            pheromone[task, machine] += Q / fitness_value
+    return pheromone
 
-if set_seed:
-    random.seed(seed_value)
-    np.random.seed(seed_value)
+# Fungsi untuk pengoptimuman ACO
+def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE):
+    num_tasks = len(data)  # Bilangan tugas dalam jadual
+    num_machines = 2  # Bilangan mesin dalam masalah Flowshop
 
-# Generate random points as an example dataset
-st.subheader("Generated Points")
-num_points = st.slider("Number of Points", 5, 20, 10)
-coordinates = np.random.rand(num_points, 2) * 100  # Random (x, y) coordinates
-points = {i: tuple(coordinates[i]) for i in range(num_points)}
-st.write(points)
+    # Inisialisasi feromon
+    pheromone = np.ones((num_tasks, num_machines))  # Matrix feromon awal
+    best_solution = None
+    best_fitness = np.inf
+    fitness_trends = []
 
-# ACO initialization
-pheromone = np.ones((num_points, num_points))
-best_path = None
-best_distance = float("inf")
+    for iteration in range(NUM_ITERATIONS):
+        iteration_solutions = []
+        iteration_fitness = []
 
-def distance(point1, point2):
-    return np.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
+        # Generate solutions for each ant
+        for ant in range(NUM_ANTS):
+            solution = generate_solution(pheromone, num_tasks, num_machines)
+            fitness_value, processing_time_machine_1, processing_time_machine_2 = calculate_fitness(solution, data)
+            iteration_solutions.append(solution)
+            iteration_fitness.append(fitness_value)
 
-def calculate_total_distance(path):
-    return sum(distance(points[path[i]], points[path[i + 1]]) for i in range(len(path) - 1))
+            # Update best solution
+            if fitness_value < best_fitness:
+                best_solution = solution
+                best_fitness = fitness_value
 
-# Ant Colony Optimization function
-def ant_colony_optimization():
-    global pheromone, best_path, best_distance
-    for iteration in range(num_iterations):
-        all_paths = []
-        all_distances = []
-        
-        for ant in range(num_ants):
-            path = [random.randint(0, num_points - 1)]  # Start point
-            for _ in range(num_points - 1):
-                current = path[-1]
-                probabilities = []
-                for next_point in range(num_points):
-                    if next_point not in path:
-                        prob = (
-                            pheromone[current][next_point] ** alpha
-                            / (distance(points[current], points[next_point]) ** beta)
-                        )
-                        probabilities.append((next_point, prob))
-                probabilities.sort(key=lambda x: x[1], reverse=True)
-                path.append(probabilities[0][0])  # Add the next point with highest probability
-            path.append(path[0])  # Return to start point
-            total_distance = calculate_total_distance(path)
-            all_paths.append(path)
-            all_distances.append(total_distance)
+        # Update pheromone levels based on fitness values
+        pheromone = update_pheromone(pheromone, iteration_solutions, iteration_fitness, EVAPORATION_RATE, Q)
 
-        # Update the best path
-        min_distance = min(all_distances)
-        if min_distance < best_distance:
-            best_distance = min_distance
-            best_path = all_paths[all_distances.index(min_distance)]
+        # Store fitness trends for visualization
+        fitness_trends.append(best_fitness)
 
-        # Update pheromones
-        pheromone *= (1 - evaporation_rate)
-        for path, total_distance in zip(all_paths, all_distances):
-            for i in range(len(path) - 1):
-                pheromone[path[i]][path[i + 1]] += 1 / total_distance
+    return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2
 
-    return best_path, best_distance
+# Memuat dataset
+st.title("Flowshop Scheduling Optimization with ACO")
 
-# Run the optimization
-st.subheader("Optimization Results")
-best_path, best_distance = ant_colony_optimization()
+uploaded_file = st.file_uploader("Upload Flowshop Scheduling Dataset", type=["csv"])
+if uploaded_file is not None:
+    data = load_data(uploaded_file)
+    st.write("Dataset Preview:")
+    st.dataframe(data.head())
 
-# Display the optimal path as text
-st.write(f"The optimal path is: {best_path}")
-st.write(f"Best distance for the optimal path: {best_distance:.2f} meters")
+    # Parameter ACO (pindahkan ke paparan utama)
+    col1, col2 = st.columns(2)
 
-# Visualize the optimal path
-st.subheader("Path Visualization")
-fig, ax = plt.subplots(figsize=(10, 5))
-for i, coord in points.items():
-    ax.scatter(*coord, label=f"Point {i}")
-for i in range(len(best_path) - 1):
-    start, end = best_path[i], best_path[i + 1]
-    ax.plot(
-        [points[start][0], points[end][0]],
-        [points[start][1], points[end][1]],
-        "r-"
-    )
-ax.set_title("Optimal Path Visualization")
-ax.legend()
-st.pyplot(fig)
+    with col1:
+        NUM_ANTS = st.number_input("Number of Ants", min_value=10, max_value=200, value=50, step=10)
+        NUM_ITERATIONS = st.number_input("Number of Iterations", min_value=10, max_value=500, value=100, step=10)
+        ALPHA = st.slider("Pheromone Importance (Alpha)", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
+        BETA = st.slider("Heuristic Importance (Beta)", min_value=0.1, max_value=5.0, value=2.0, step=0.1)
+
+    with col2:
+        EVAPORATION_RATE = st.slider("Evaporation Rate", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
+        Q = st.number_input("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100, step=10)
+        MUT_RATE = st.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2, step=0.05)
+
+    # Menunjukkan Aliran Kerja (Workflow) dalam bentuk teks dan imej
+    if st.button("Run ACO Optimization"):
+        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
+
+        # Paparan hasil terbaik dalam bentuk jadual
+        st.subheader("Best Solution (Machine Allocation for Each Task)")
+        solution_df = pd.DataFrame({
+            "Task": [f"Task {i+1}" for i in range(len(best_solution))],
+            "Machine Assigned": best_solution
+        })
+        st.table(solution_df)
+
+        # Paparan masa pemprosesan bagi setiap mesin
+        st.subheader("Processing Time for Each Machine")
+        processing_time_df = pd.DataFrame({
+            "Machine 1 Processing Time": [processing_time_machine_1],
+            "Machine 2 Processing Time": [processing_time_machine_2]
+        })
+        st.table(processing_time_df)
+
+        # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik sahaja
+        st.subheader("Best Ant Colony Path Visualization")
+        fig, ax = plt.subplots(figsize=(8, 6))
+
+        # Tetapkan koordinat (contoh) untuk setiap tugas (anda boleh menyesuaikan koordinat jika perlu)
+        coordinates = {
+            i: (random.randint(0, 10), random.randint(0, 10)) for i in range(len(best_solution))
+        }
+
+        # Lukiskan perjalanan semut terbaik
+        for i in range(len(best_solution) - 1):
+            x_coords = [coordinates[i][0], coordinates[i + 1][0]]
+            y_coords = [coordinates[i][1], coordinates[i + 1][1]]
+            color = 'red' if best_solution[i] != best_solution[i + 1] else 'black'
+            ax.plot(x_coords, y_coords, marker='o', color=color)
+
+        # Tambah label untuk setiap titik
+        for task, coord in coordinates.items():
+            ax.text(coord[0], coord[1], str(task + 1), fontsize=9, ha='center', va='center')
+
+        ax.set_title("Best Ant Colony Path Visualization")
+        ax.set_xlabel("X Coordinates")
+        ax.set_ylabel("Y Coordinates")
+        st.pyplot(fig)
+
+        # Plotting Fitness Trends
+        st.subheader("Fitness Trend Over Iterations")
+        st.line_chart(fitness_trends)
