@@ -105,21 +105,21 @@ best_solution, fitness_trends = ant_colony_optimization()
 st.subheader("Best Solution")
 st.write(best_solution)
 
-# Visualization
-fig, ax = plt.subplots(1, 2, figsize=(15, 6))
-
-# Plot best fitness trend
-ax[0].plot(fitness_trends, label="Best Fitness")
-ax[0].set_xlabel("Iterations")
-ax[0].set_ylabel("Fitness")
-ax[0].set_title("Fitness Trend")
-ax[0].legend()
-
-# Plot the optimal path (example visualization)
-x_points = [random.randint(0, 100) for _ in range(len(best_solution))]
-y_points = [random.randint(0, 100) for _ in range(len(best_solution))]
-ax[1].plot(x_points, y_points, marker="o", color="red", label="Optimal Path")
-ax[1].set_title("Optimal Path Visualization")
-ax[1].legend()
+# Display fitness trend graph
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.plot(fitness_trends, label="Best Fitness")
+ax.set_xlabel("Iterations")
+ax.set_ylabel("Fitness")
+ax.set_title("Fitness Trend")
+ax.legend()
 
 st.pyplot(fig)
+
+# Display optimal path as text
+st.subheader("Optimal Path (Coordinates)")
+optimal_path = [
+    (random.randint(0, 100), random.randint(0, 100)) for _ in range(10)
+]
+st.write("The optimal path is displayed below (as coordinates):")
+for i, point in enumerate(optimal_path, start=1):
+    st.write(f"Point {i}: {point}")
