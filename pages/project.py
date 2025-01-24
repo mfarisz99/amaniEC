@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 
 # Load the dataset
-data = pd.read_csv("flowshop_scheduling_dataset.csv")
+data = pd.read_csv("content/flowshop_scheduling_dataset.csv")
 
 # Streamlit Sidebar Input
 st.sidebar.header("Ant colony optimization for flowshop scheduling")
