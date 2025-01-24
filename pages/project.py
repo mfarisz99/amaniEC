@@ -79,7 +79,7 @@ def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORA
         # Store fitness trends for visualization
         fitness_trends.append(best_fitness)
 
-    return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2, pheromone
+    return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2
 
 # Fungsi untuk memvisualisasikan perjalanan semut menggunakan NetworkX
 def visualize_ant_colony(best_solution, num_tasks, pheromone):
@@ -107,7 +107,10 @@ def visualize_ant_colony(best_solution, num_tasks, pheromone):
     nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_weights)
     
     plt.title("Ant Colony Path Visualization")
-    plt.show()
+    
+    # Pastikan grafik dipaparkan dalam Streamlit
+    st.pyplot(plt)
+    plt.close()  # Tutup gambar untuk elakkan duplikasi jika streamlit dipanggil berulang kali
 
 # Memuat dataset
 st.title("Flowshop Scheduling Optimization with ACO")
@@ -134,8 +137,7 @@ if uploaded_file is not None:
 
     # Menunjukkan Aliran Kerja (Workflow) dalam bentuk teks dan imej
     if st.button("Run ACO Optimization"):
-        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2, pheromone = ant_colony_optimization(
-            data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
+        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
 
         # Paparan hasil terbaik dalam bentuk jadual
         st.subheader("Best Solution (Machine Allocation for Each Task)")
@@ -153,9 +155,8 @@ if uploaded_file is not None:
         })
         st.table(processing_time_df)
 
-        # Visualisasi Ant Colony
-        st.subheader("Ant Colony Path Visualization")
-        visualize_ant_colony(best_solution, len(best_solution), pheromone)
+        # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik
+        visualize_ant_colony(best_solution, len(best_solution), np.ones((len(best_solution), 2)))  # Panggil fungsi visualisasi
 
         # Plotting Fitness Trends
         st.subheader("Fitness Trend Over Iterations")
