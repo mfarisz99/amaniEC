@@ -9,4 +9,4 @@ opencv-python-headless
 opencv-contrib-python
 pandas
 opencv-contrib-python-headless
-pip install graphviz
+graphviz
