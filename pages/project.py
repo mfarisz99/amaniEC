@@ -122,4 +122,11 @@ if uploaded_file is not None:
 
         # Plotting Fitness Trends
         st.subheader("Fitness Trend Over Iterations")
-        st.line_chart(fitness_trends)
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(range(1, len(fitness_trends) + 1), fitness_trends, marker='o', color='b', label='Fitness Trend')
+        ax.set_title("Fitness Trend Over Iterations", fontsize=16)
+        ax.set_xlabel("Iterations", fontsize=12)
+        ax.set_ylabel("Fitness Value", fontsize=12)
+        ax.grid(True, linestyle='--', alpha=0.6)
+        ax.legend()
+        st.pyplot(fig)
