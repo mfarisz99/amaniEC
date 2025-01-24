@@ -54,13 +54,6 @@ if uploaded_file is not None:
         lateness_penalty = max(0, total_time - due_date) * weight
         return -lateness_penalty if lateness_penalty > 0 else -1  # Avoid zero fitness
 
-    # Mutation function
-    def mutate(solution):
-        if random.random() < MUT_RATE:
-            key = random.choice(list(bounds.keys()))
-            solution[key] = random.randint(*bounds[key])
-        return solution
-
     # Main ACO loop
     def ant_colony_optimization():
         pheromones = initialize_pheromones()
@@ -91,22 +84,6 @@ if uploaded_file is not None:
                 best_fitness = best_iteration_fitness
                 best_solution = best_iteration_solution
 
-            # Update pheromones based on solutions
-            for solution, fitness in zip(solutions, fitness_values):
-                for key in pheromones:
-                    index = int(solution[key] - bounds[key][0])
-                    if fitness != 0:
-                        pheromones[key][index] += Q / (-fitness)
-                    else:
-                        pheromones[key][index] += Q  # Assign base value
-
-            # Evaporate pheromones
-            for key in pheromones:
-                pheromones[key] *= (1 - EVAPORATION_RATE)
-
-            # Apply mutation
-            best_solution = mutate(best_solution)
-
             # Log fitness trends for plotting
             fitness_trends.append(best_fitness)
 
@@ -128,16 +105,6 @@ if uploaded_file is not None:
         fig.update_layout(title='Fitness Trend Over Iterations',
                           xaxis_title='Iterations',
                           yaxis_title='Fitness',
-                          template='plotly_dark')
-
-        st.plotly_chart(fig)
-
-        # Displaying other interesting output in charts
-        st.subheader("Ant Colony Visualization")
-        fig = go.Figure(data=[go.Bar(x=list(bounds.keys()), y=[random.randint(1, 10) for _ in bounds])])
-        fig.update_layout(title='Ant Colony Solution Bar Chart',
-                          xaxis_title='Machines/Operations',
-                          yaxis_title='Values',
                           template='plotly_dark')
 
         st.plotly_chart(fig)
