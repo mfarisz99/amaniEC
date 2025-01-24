@@ -78,44 +78,28 @@ def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORA
         # Store fitness trends for visualization
         fitness_trends.append(best_fitness)
 
-    return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2
+    return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2, pheromone
 
 # Fungsi untuk visualisasi perjalanan ant colony
-def visualize_ant_colony(best_solution, num_tasks, pheromone):
-    G = nx.DiGraph()  # Graff berarah untuk menunjukkan hubungan antara tugas dan mesin
-    positions = {}  # Posisi untuk visualisasi
+def visualize_ant_colony(solution, num_tasks, pheromone):
+    # Create a graph to visualize the ant colony
+    G = nx.Graph()
+    
+    for task in range(num_tasks):
+        G.add_node(task, label=f"Task {task+1}")
+    
+    for i in range(len(solution) - 1):
+        if solution[i] == solution[i+1]:
+            G.add_edge(i, i+1, weight=pheromone[i, solution[i]])
 
-    # Menambah nodes untuk setiap tugas
-    for i in range(num_tasks):
-        G.add_node(i, label=f'Task {i+1}')
-        positions[i] = (i, 0)  # Susun tugas dalam satu garis mendatar (y = 0)
-
-    # Menambah mesin sebagai node tambahan
-    for i in range(2):
-        G.add_node(f'Machine {i+1}', label=f'Machine {i+1}')
-        positions[f'Machine {i+1}'] = (i, 1)  # Susun mesin dalam satu baris y = 1
-
-    # Menambah edges berdasarkan penyelesaian terbaik dan feromon
-    for i in range(num_tasks):
-        machine = best_solution[i]
-        pheromone_strength = pheromone[i, machine]  # Dapatkan kekuatan feromon untuk mesin
-        G.add_edge(i, f'Machine {machine + 1}', weight=pheromone_strength)
-
-    # Visualisasi menggunakan NetworkX dan Matplotlib
-    plt.figure(figsize=(10, 8))
-    nx.draw(G, pos=positions, with_labels=True, node_size=3000, node_color="skyblue", font_size=10, font_weight="bold", edge_color='gray', width=2)
-
-    # Tambah ketebalan garis berdasarkan feromon
+    pos = nx.spring_layout(G)
     edge_weights = nx.get_edge_attributes(G, 'weight')
-    nx.draw_networkx_edge_labels(G, pos=positions, edge_labels=edge_weights)
 
-    # Menambah sedikit pembezaan untuk membezakan kekuatan feromon
-    for u, v, d in G.edges(data=True):
-        d['weight'] = d['weight'] * 2  # Memperbesar ketebalan garis mengikut feromon
-
+    plt.figure(figsize=(8, 6))
+    nx.draw(G, pos, with_labels=True, node_size=500, node_color='lightblue', font_size=10, font_weight='bold', edge_color='gray', width=1)
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_weights, font_size=8)
     plt.title("Ant Colony Path Visualization")
-    st.pyplot(plt)
-    plt.close()  # Tutup gambar untuk elakkan duplikasi jika streamlit dipanggil berulang kali
+    plt.show()
 
 # Memuat dataset
 st.title("Flowshop Scheduling Optimization with ACO")
@@ -142,7 +126,7 @@ if uploaded_file is not None:
 
     # Menunjukkan Aliran Kerja (Workflow) dalam bentuk teks dan imej
     if st.button("Run ACO Optimization"):
-        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
+        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2, pheromone = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
 
         # Paparan hasil terbaik dalam bentuk jadual
         st.subheader("Best Solution (Machine Allocation for Each Task)")
