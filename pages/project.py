@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+import graphviz
 
 # Fungsi untuk memuat dataset
 @st.cache_data
@@ -18,14 +19,19 @@ if uploaded_file is not None:
     st.write("Dataset Preview:")
     st.dataframe(data.head())
 
-    # Parameter ACO
-    NUM_ANTS = st.sidebar.number_input("Number of Ants", min_value=10, max_value=200, value=50, step=10)
-    NUM_ITERATIONS = st.sidebar.number_input("Number of Iterations", min_value=10, max_value=500, value=100, step=10)
-    ALPHA = st.sidebar.slider("Pheromone Importance (Alpha)", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
-    BETA = st.sidebar.slider("Heuristic Importance (Beta)", min_value=0.1, max_value=5.0, value=2.0, step=0.1)
-    EVAPORATION_RATE = st.sidebar.slider("Evaporation Rate", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
-    Q = st.sidebar.number_input("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100, step=10)
-    MUT_RATE = st.sidebar.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2, step=0.05)
+    # Bahagi paparan utama untuk parameter ACO
+    col1, col2 = st.columns(2)
+
+    with col1:
+        NUM_ANTS = st.number_input("Number of Ants", min_value=10, max_value=200, value=50, step=10)
+        NUM_ITERATIONS = st.number_input("Number of Iterations", min_value=10, max_value=500, value=100, step=10)
+        ALPHA = st.slider("Pheromone Importance (Alpha)", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
+        BETA = st.slider("Heuristic Importance (Beta)", min_value=0.1, max_value=5.0, value=2.0, step=0.1)
+
+    with col2:
+        EVAPORATION_RATE = st.slider("Evaporation Rate", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
+        Q = st.number_input("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100, step=10)
+        MUT_RATE = st.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2, step=0.05)
 
     # Define bounds for optimization
     bounds = {
@@ -35,12 +41,12 @@ if uploaded_file is not None:
         "Setup_Time_Machine_2": (data["Setup_Time_Machine_2"].min(), data["Setup_Time_Machine_2"].max()),
     }
 
-    # Initialize pheromones
+    # Fungsi untuk inisialisasi feromon
     def initialize_pheromones():
         pheromones = {key: np.ones(int(bounds[key][1] - bounds[key][0] + 1)) for key in bounds}
         return pheromones
 
-    # Fitness function
+    # Fungsi fitness
     def fitness_cal(solution):
         total_time = (
             solution["Processing_Time_Machine_1"] + solution["Processing_Time_Machine_2"] +
@@ -51,14 +57,14 @@ if uploaded_file is not None:
         lateness_penalty = max(0, total_time - due_date) * weight
         return -lateness_penalty if lateness_penalty > 0 else -1  # Avoid zero fitness
 
-    # Mutation function
+    # Fungsi mutasi
     def mutate(solution):
         if random.random() < MUT_RATE:
             key = random.choice(list(bounds.keys()))
             solution[key] = random.randint(*bounds[key])
         return solution
 
-    # Main ACO loop
+    # Fungsi utama ACO
     def ant_colony_optimization():
         pheromones = initialize_pheromones()
         best_solution = None
@@ -79,16 +85,16 @@ if uploaded_file is not None:
                 solutions.append(solution)
                 fitness_values.append(fitness)
 
-            # Find the best fitness of the current iteration
+            # Cari fitness terbaik untuk iterasi ini
             best_iteration_fitness = max(fitness_values)
             best_iteration_solution = solutions[fitness_values.index(best_iteration_fitness)]
 
-            # Update global best solution if necessary
+            # Kemaskini solusi terbaik global jika perlu
             if best_iteration_fitness > best_fitness:
                 best_fitness = best_iteration_fitness
                 best_solution = best_iteration_solution
 
-            # Update pheromones based on solutions
+            # Kemaskini feromon berdasarkan solusi
             for solution, fitness in zip(solutions, fitness_values):
                 for key in pheromones:
                     index = int(solution[key] - bounds[key][0])
@@ -97,32 +103,66 @@ if uploaded_file is not None:
                     else:
                         pheromones[key][index] += Q  # Assign base value
 
-            # Evaporate pheromones
+            # Penyejatan feromon
             for key in pheromones:
                 pheromones[key] *= (1 - EVAPORATION_RATE)
 
-            # Apply mutation
+            # Terapkan mutasi
             best_solution = mutate(best_solution)
 
-            # Log fitness trends for plotting
+            # Rekodkan tren fitness untuk carta
             fitness_trends.append(best_fitness)
 
         return best_solution, fitness_trends
 
-    # Run ACO
+    # Menunjukkan hasil dan workflow
     if st.button("Run ACO Optimization"):
         best_solution, fitness_trends = ant_colony_optimization()
 
-        # Display the best solution
+        # Paparan hasil terbaik
         st.subheader("Best Solution")
         st.write(best_solution)
 
-        # Plot fitness trends
-        st.subheader("Fitness Trends Over Iterations")
-        fig, ax = plt.subplots()
-        ax.plot(fitness_trends, label="Fitness")
-        ax.set_xlabel("Iterations")
-        ax.set_ylabel("Fitness")
-        ax.set_title("Fitness Trends Over Iterations")
-        ax.legend()
-        st.pyplot(fig)
+        # Paparan aliran kerja
+        st.subheader("Workflow for Ant Colony Optimization")
+        st.markdown("""
+        **Step 1: Initialize Pheromones**  
+        Pheromones are initialized randomly to create a starting point for the optimization process.
+        
+        **Step 2: Generate Solutions**  
+        Ants explore different possible solutions based on pheromone levels and the heuristics.
+
+        **Step 3: Evaluate Solutions**  
+        Each solution is evaluated using a fitness function that considers the total time and penalty for lateness.
+
+        **Step 4: Update Pheromones**  
+        Pheromone levels are updated based on the fitness of the solutions, rewarding better solutions with stronger pheromones.
+
+        **Step 5: Evaporate Pheromones**  
+        Over time, pheromones evaporate to simulate the diminishing influence of previous decisions.
+
+        **Step 6: Apply Mutation**  
+        Mutation is applied to introduce random changes to the solutions, encouraging exploration of new possibilities.
+
+        **Step 7: Iterate**  
+        The process repeats over multiple iterations, with the goal of finding the best solution that minimizes lateness penalties.
+
+        **Final Step: Output Best Solution**  
+        The best solution found after all iterations is presented.
+        """)
+
+        # Menambah gambaran visual menggunakan Graphviz
+        st.subheader("Graphical Workflow Visualization")
+        dot = graphviz.Digraph(format='png')
+        dot.node('A', 'Initialize Pheromones')
+        dot.node('B', 'Generate Solutions')
+        dot.node('C', 'Evaluate Solutions')
+        dot.node('D', 'Update Pheromones')
+        dot.node('E', 'Evaporate Pheromones')
+        dot.node('F', 'Apply Mutation')
+        dot.node('G', 'Iterate')
+        dot.node('H', 'Output Best Solution')
+        
+        dot.edges(['AB', 'BC', 'CD', 'DE', 'EF', 'FG', 'GH'])
+        st.image(dot.render(), caption="ACO Workflow Diagram")
+
