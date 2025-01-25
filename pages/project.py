@@ -91,7 +91,7 @@ def ant_colony_optimization(data, bounds):
     return best_solution, fitness_trends
 
 # Antaramuka Streamlit
-st.title("Ant Colony Optimization")
+st.title("Flow Shop Scheduling of Ant Colony Optimization")
 
 # Muat naik dataset
 uploaded_file = st.file_uploader("Upload dataset flowshop scheduling (CSV)", type="csv")
