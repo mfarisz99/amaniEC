@@ -86,8 +86,6 @@ st.title("Flowshop Scheduling Optimization with ACO")
 uploaded_file = st.file_uploader("Upload Flowshop Scheduling Dataset", type=["csv"])
 if uploaded_file is not None:
     data = load_data(uploaded_file)
-    st.write("Dataset Preview:")
-    st.dataframe(data.head())
 
     # Parameter ACO (pindahkan ke paparan utama)
     col1, col2 = st.columns(2)
