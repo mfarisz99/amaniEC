@@ -141,3 +141,4 @@ if uploaded_file is not None:
         # Plotting Fitness Trends
         st.subheader("Fitness Trend Over Iterations")
         st.line_chart(fitness_trends)
+
