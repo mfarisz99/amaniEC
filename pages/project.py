@@ -103,58 +103,58 @@ if uploaded_file is not None:
         Q = st.number_input("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100, step=10)
         MUT_RATE = st.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2, step=0.05)
 
-    # Menunjukkan Aliran Kerja (Workflow) dalam bentuk teks dan imej
-    if st.button("Run ACO Optimization"):
-        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
+   # Ensure everything under the button click is indented properly
+if st.button("Run ACO Optimization"):
+    best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
 
-        # Paparan hasil terbaik dalam bentuk jadual
-        st.subheader("Best Solution (Machine Allocation for Each Task)")
-        solution_df = pd.DataFrame({
-            "Task": [f"Task {i+1}" for i in range(len(best_solution))],
-            "Machine Assigned": best_solution
-        })
-        st.table(solution_df)
+    # Paparan hasil terbaik dalam bentuk jadual
+    st.subheader("Best Solution (Machine Allocation for Each Task)")
+    solution_df = pd.DataFrame({
+        "Task": [f"Task {i+1}" for i in range(len(best_solution))],
+        "Machine Assigned": best_solution
+    })
+    st.table(solution_df)
 
-        # Paparan masa pemprosesan bagi setiap mesin
-        st.subheader("Processing Time for Each Machine")
-        processing_time_df = pd.DataFrame({
-            "Machine 1 Processing Time": [processing_time_machine_1],
-            "Machine 2 Processing Time": [processing_time_machine_2]
-        })
-        st.table(processing_time_df)
+    # Paparan masa pemprosesan bagi setiap mesin
+    st.subheader("Processing Time for Each Machine")
+    processing_time_df = pd.DataFrame({
+        "Machine 1 Processing Time": [processing_time_machine_1],
+        "Machine 2 Processing Time": [processing_time_machine_2]
+    })
+    st.table(processing_time_df)
 
-      # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik untuk Mesin 1
-      st.subheader("Best Ant Colony Path Visualization for Machine 1")
-      fig1, ax1 = plt.subplots(figsize=(8, 6))
-coordinates_machine_1 = {i: (random.randint(0, 10), random.randint(0, 10)) for i in range(len(best_solution))}
+    # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik untuk Mesin 1
+    st.subheader("Best Ant Colony Path Visualization for Machine 1")
+    fig1, ax1 = plt.subplots(figsize=(8, 6))
+    coordinates_machine_1 = {i: (random.randint(0, 10), random.randint(0, 10)) for i in range(len(best_solution))}
 
-for i in range(len(best_solution) - 1):
-    x_coords = [coordinates_machine_1[i][0], coordinates_machine_1[i + 1][0]]
-    y_coords = [coordinates_machine_1[i][1], coordinates_machine_1[i + 1][1]]
+    for i in range(len(best_solution) - 1):
+        x_coords = [coordinates_machine_1[i][0], coordinates_machine_1[i + 1][0]]
+        y_coords = [coordinates_machine_1[i][1], coordinates_machine_1[i + 1][1]]
 
-    if best_solution[i] == 0 and best_solution[i + 1] == 0:  # Mesin 1
-        ax1.plot(x_coords, y_coords, color='red')  # Garis merah untuk Mesin 1
+        if best_solution[i] == 0 and best_solution[i + 1] == 0:  # Mesin 1
+            ax1.plot(x_coords, y_coords, color='red')  # Garis merah untuk Mesin 1
 
-for task, coord in coordinates_machine_1.items():
-    ax1.text(coord[0], coord[1], "🏪", fontsize=12, ha='center', va='center')  # Ikon 🏪 sebagai titik
+    for task, coord in coordinates_machine_1.items():
+        ax1.text(coord[0], coord[1], "🏪", fontsize=12, ha='center', va='center')  # Ikon 🏪 sebagai titik
 
-ax1.set_title("Best Ant Colony Path for Machine 1")
-st.pyplot(fig1)
+    ax1.set_title("Best Ant Colony Path for Machine 1")
+    st.pyplot(fig1)
 
-# Visualisasi Ant Colony: Paparkan perjalanan semut terbaik untuk Mesin 2
-st.subheader("Best Ant Colony Path Visualization for Machine 2")
-fig2, ax2 = plt.subplots(figsize=(8, 6))
-coordinates_machine_2 = {i: (random.randint(0, 10), random.randint(0, 10)) for i in range(len(best_solution))}
+    # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik untuk Mesin 2
+    st.subheader("Best Ant Colony Path Visualization for Machine 2")
+    fig2, ax2 = plt.subplots(figsize=(8, 6))
+    coordinates_machine_2 = {i: (random.randint(0, 10), random.randint(0, 10)) for i in range(len(best_solution))}
 
-for i in range(len(best_solution) - 1):
-    x_coords = [coordinates_machine_2[i][0], coordinates_machine_2[i + 1][0]]
-    y_coords = [coordinates_machine_2[i][1], coordinates_machine_2[i + 1][1]]
+    for i in range(len(best_solution) - 1):
+        x_coords = [coordinates_machine_2[i][0], coordinates_machine_2[i + 1][0]]
+        y_coords = [coordinates_machine_2[i][1], coordinates_machine_2[i + 1][1]]
 
-    if best_solution[i] == 1 and best_solution[i + 1] == 1:  # Mesin 2
-        ax2.plot(x_coords, y_coords, color='blue')  # Garis biru untuk Mesin 2
+        if best_solution[i] == 1 and best_solution[i + 1] == 1:  # Mesin 2
+            ax2.plot(x_coords, y_coords, color='blue')  # Garis biru untuk Mesin 2
 
-for task, coord in coordinates_machine_2.items():
-    ax2.text(coord[0], coord[1], "🏪", fontsize=12, ha='center', va='center')  # Ikon 🏪 sebagai titik
+    for task, coord in coordinates_machine_2.items():
+        ax2.text(coord[0], coord[1], "🏪", fontsize=12, ha='center', va='center')  # Ikon 🏪 sebagai titik
 
-ax2.set_title("Best Ant Colony Path for Machine 2")
-st.pyplot(fig2)
+    ax2.set_title("Best Ant Colony Path for Machine 2")
+    st.pyplot(fig2)
