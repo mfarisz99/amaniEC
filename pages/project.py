@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 
 # Fungsi untuk memuat dataset
@@ -78,34 +79,6 @@ def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORA
 
     return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2
 
-# Fungsi untuk visualisasi yang lebih sederhana
-def visualize_task_flow_simple(best_solution, num_tasks):
-    # Gambar latar belakang untuk bar aliran
-    fig, ax = plt.subplots(figsize=(12, 2))
-    ax.set_xlim(0, num_tasks)
-    ax.set_ylim(0, 1)
-    
-    # Tandakan setiap tugas dalam aliran
-    for i in range(num_tasks):
-        if best_solution[i] == 0:  # Mesin 1
-            color = 'lightcoral'
-        else:  # Mesin 2
-            color = 'lightblue'
-        
-        # Lukis setiap tugas sebagai blok berwarna
-        ax.add_patch(plt.Rectangle((i, 0), 1, 1, color=color))
-        ax.text(i + 0.5, 0.5, f"Task {i+1}", ha="center", va="center", fontsize=10, color="black")
-
-    # Menambahkan label untuk mesin
-    ax.text(-0.5, 0.5, "Machine 1", ha="center", va="center", fontsize=12, color="black")
-    ax.text(num_tasks - 0.5, 0.5, "Machine 2", ha="center", va="center", fontsize=12, color="black")
-    
-    # Set axis off untuk visual yang lebih bersih
-    ax.axis("off")
-
-    # Paparkan gambar
-    st.pyplot(fig)
-
 # Memuat dataset
 st.title("Flowshop Scheduling Optimization with ACO")
 
@@ -114,24 +87,23 @@ if uploaded_file is not None:
     data = load_data(uploaded_file)
 
     # Parameter ACO (pindahkan ke paparan utama)
-    col1, col2 = st.columns(2)
+    st.sidebar.header("ACO Hyperparameters")
 
-    with col1:
-        NUM_ANTS = st.number_input("Number of Ants", min_value=10, max_value=200, value=50, step=10)
-        NUM_ITERATIONS = st.number_input("Number of Iterations", min_value=10, max_value=500, value=100, step=10)
-        ALPHA = st.slider("Pheromone Importance (Alpha)", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
-        BETA = st.slider("Heuristic Importance (Beta)", min_value=0.1, max_value=5.0, value=2.0, step=0.1)
+    NUM_ANTS = st.sidebar.number_input("Number of Ants", min_value=10, max_value=200, value=50, step=10)
+    NUM_ITERATIONS = st.sidebar.number_input("Number of Iterations", min_value=10, max_value=500, value=100, step=10)
+    ALPHA = st.sidebar.slider("Pheromone Importance (Alpha)", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
+    BETA = st.sidebar.slider("Heuristic Importance (Beta)", min_value=0.1, max_value=5.0, value=2.0, step=0.1)
 
-    with col2:
-        EVAPORATION_RATE = st.slider("Evaporation Rate", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
-        Q = st.number_input("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100, step=10)
-        MUT_RATE = st.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2, step=0.05)
+    EVAPORATION_RATE = st.sidebar.slider("Evaporation Rate", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
+    Q = st.sidebar.number_input("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100, step=10)
+    MUT_RATE = st.sidebar.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2, step=0.05)
 
     # Menunjukkan Aliran Kerja (Workflow) dalam bentuk teks dan imej
     if st.button("Run ACO Optimization"):
-        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
+        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(
+            data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
 
-        # Paparkan hasil terbaik dalam bentuk jadual
+        # Paparan hasil terbaik dalam bentuk jadual
         st.subheader("Best Solution (Machine Allocation for Each Task)")
         solution_df = pd.DataFrame({
             "Task": [f"Task {i+1}" for i in range(len(best_solution))],
@@ -146,10 +118,6 @@ if uploaded_file is not None:
             "Machine 2 Processing Time": [processing_time_machine_2]
         })
         st.table(processing_time_df)
-
-        # Paparkan visualisasi aliran tugas
-        st.subheader("Task Flow Visualization")
-        visualize_task_flow_simple(best_solution, len(best_solution))
 
         # Plotting Fitness Trends
         st.subheader("Fitness Trend Over Iterations")
