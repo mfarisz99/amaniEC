@@ -10,13 +10,28 @@ def load_data(filepath):
     return pd.read_csv(filepath)
 
 # Fungsi untuk menjana penyelesaian (solusi) berdasarkan feromon
-def generate_solution(pheromone, num_tasks, num_machines):
+def generate_solution(pheromone, num_tasks, num_machines, data):
     solution = []
     for task in range(num_tasks):
-        probabilities = pheromone[task, :]  # Dapatkan nilai feromon bagi tugas
-        total_pheromone = sum(probabilities)
-        probabilities = [p / total_pheromone for p in probabilities]  # Normalisasi kepada kebarangkalian
-        chosen_machine = np.random.choice(num_machines, p=probabilities)  # Pilih mesin berdasarkan kebarangkalian
+        # Dapatkan nilai feromon bagi tugas
+        probabilities = pheromone[task, :]
+        
+        # Mengambil kira masa pemprosesan untuk memilih mesin yang lebih cepat
+        processing_times = [
+            data["Processing_Time_Machine_1"][task] + data["Setup_Time_Machine_1"][task], 
+            data["Processing_Time_Machine_2"][task] + data["Setup_Time_Machine_2"][task]
+        ]
+        
+        # Adjust kebarangkalian untuk memilih mesin yang lebih pantas
+        adjusted_probabilities = []
+        for i in range(num_machines):
+            adjusted_probabilities.append(probabilities[i] / processing_times[i])
+        
+        total_probability = sum(adjusted_probabilities)
+        probabilities = [p / total_probability for p in adjusted_probabilities]  # Normalisasi kebarangkalian
+        
+        # Pilih mesin berdasarkan kebarangkalian yang dikemas kini
+        chosen_machine = np.random.choice(num_machines, p=probabilities)
         solution.append(chosen_machine)
     return solution
 
@@ -61,7 +76,7 @@ def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORA
 
         # Generate solutions for each ant
         for ant in range(NUM_ANTS):
-            solution = generate_solution(pheromone, num_tasks, num_machines)
+            solution = generate_solution(pheromone, num_tasks, num_machines, data)
             fitness_value, processing_time_machine_1, processing_time_machine_2 = calculate_fitness(solution, data)
             iteration_solutions.append(solution)
             iteration_fitness.append(fitness_value)
