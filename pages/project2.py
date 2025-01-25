@@ -1,41 +1,44 @@
+import streamlit as st
 import pandas as pd
 import numpy as np
 import random
-import streamlit as st
 import matplotlib.pyplot as plt
-import networkx as nx
 
-# Load the dataset
-@st.cache
+# Load data using file uploader
 def load_data():
-    return pd.read_csv("/content/flowshop_scheduling_dataset.csv")
+    uploaded_file = st.file_uploader("Pilih Fail CSV", type=["csv"])
+    if uploaded_file is not None:
+        return pd.read_csv(uploaded_file)
+    else:
+        st.warning("Sila muat naik fail CSV terlebih dahulu.")
+        return None
 
-data = load_data()
-
-# Parameters (Input by user)
-NUM_ANTS = st.number_input("Number of Ants", min_value=10, max_value=100, value=50)
-NUM_ITERATIONS = st.number_input("Number of Iterations", min_value=10, max_value=200, value=100)
-ALPHA = st.slider("Pheromone Importance (Alpha)", min_value=1, max_value=10, value=1)
-BETA = st.slider("Heuristic Importance (Beta)", min_value=1, max_value=10, value=2)
-EVAPORATION_RATE = st.slider("Pheromone Evaporation Rate", min_value=0.0, max_value=1.0, value=0.5)
-Q = st.slider("Pheromone Deposit Factor (Q)", min_value=1, max_value=200, value=100)
-MUT_RATE = st.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2)
+# Parameters
+NUM_ANTS = 50
+NUM_ITERATIONS = 100
+ALPHA = 1  # Pheromone importance
+BETA = 2   # Heuristic importance
+EVAPORATION_RATE = 0.5
+Q = 100  # Pheromone deposit factor
+MUT_RATE = 0.2  # Mutation rate
 
 # Define bounds for optimization
-bounds = {
-    "Processing_Time_Machine_1": (data["Processing_Time_Machine_1"].min(), data["Processing_Time_Machine_1"].max()),
-    "Processing_Time_Machine_2": (data["Processing_Time_Machine_2"].min(), data["Processing_Time_Machine_2"].max()),
-    "Setup_Time_Machine_1": (data["Setup_Time_Machine_1"].min(), data["Setup_Time_Machine_1"].max()),
-    "Setup_Time_Machine_2": (data["Setup_Time_Machine_2"].min(), data["Setup_Time_Machine_2"].max()),
-}
+def define_bounds(data):
+    bounds = {
+        "Processing_Time_Machine_1": (data["Processing_Time_Machine_1"].min(), data["Processing_Time_Machine_1"].max()),
+        "Processing_Time_Machine_2": (data["Processing_Time_Machine_2"].min(), data["Processing_Time_Machine_2"].max()),
+        "Setup_Time_Machine_1": (data["Setup_Time_Machine_1"].min(), data["Setup_Time_Machine_1"].max()),
+        "Setup_Time_Machine_2": (data["Setup_Time_Machine_2"].min(), data["Setup_Time_Machine_2"].max()),
+    }
+    return bounds
 
 # Initialize pheromones
-def initialize_pheromones():
+def initialize_pheromones(bounds):
     pheromones = {key: np.ones(int(bounds[key][1] - bounds[key][0] + 1)) for key in bounds}
     return pheromones
 
 # Fitness function
-def fitness_cal(solution):
+def fitness_cal(solution, data):
     total_time = (
         solution["Processing_Time_Machine_1"] + solution["Processing_Time_Machine_2"] +
         solution["Setup_Time_Machine_1"] + solution["Setup_Time_Machine_2"]
@@ -52,15 +55,15 @@ def select_value(pheromone, heuristic):
     return np.random.choice(len(probabilities), p=probabilities)
 
 # Mutation function
-def mutate(solution):
+def mutate(solution, bounds, MUT_RATE):
     if random.random() < MUT_RATE:
         key = random.choice(list(bounds.keys()))
         solution[key] = random.randint(*bounds[key])
     return solution
 
 # Main ACO loop
-def ant_colony_optimization():
-    pheromones = initialize_pheromones()
+def ant_colony_optimization(data, bounds):
+    pheromones = initialize_pheromones(bounds)
     best_solution = None
     best_fitness = float('-inf')
     fitness_trends = []
@@ -75,20 +78,18 @@ def ant_colony_optimization():
             }
             solution["Due_Date"] = random.choice(data["Due_Date"].values)
             solution["Weight"] = random.choice(data["Weight"].values)
-            fitness = fitness_cal(solution)
+            fitness = fitness_cal(solution, data)
             solutions.append(solution)
             fitness_values.append(fitness)
 
-        # Find the best fitness of the current iteration
         best_iteration_fitness = max(fitness_values)
         best_iteration_solution = solutions[fitness_values.index(best_iteration_fitness)]
 
-        # Update global best solution if necessary
         if best_iteration_fitness > best_fitness:
             best_fitness = best_iteration_fitness
             best_solution = best_iteration_solution
 
-        # Update pheromones based on solutions
+        # Update pheromones
         for solution, fitness in zip(solutions, fitness_values):
             for key in pheromones:
                 index = int(solution[key] - bounds[key][0])
@@ -101,56 +102,34 @@ def ant_colony_optimization():
         for key in pheromones:
             pheromones[key] *= (1 - EVAPORATION_RATE)
 
-        # Apply mutation
-        best_solution = mutate(best_solution)
-
-        # Log fitness trends for plotting
+        best_solution = mutate(best_solution, bounds, MUT_RATE)
         fitness_trends.append(best_fitness)
 
-        # Print fitness of best solution in current iteration
-        print(f"Iteration {iteration + 1}, Best Fitness: {best_fitness}")
+        st.write(f"Iteration {iteration + 1}, Best Fitness: {best_fitness}")
 
     return best_solution, fitness_trends
 
-# Function for visualizing the best solution as a graph
-def visualize_best_solution(best_solution):
-    G = nx.DiGraph()  # Directed graph to show process flow
+# Main streamlit app
+def main():
+    st.title("Flow Shop Scheduling Optimization with ACO")
 
-    # Add nodes representing each shop/job
-    for i, key in enumerate(best_solution):
-        if key not in ['Due_Date', 'Weight']:
-            G.add_node(key, label=f"{key}\n{best_solution[key]}")
+    data = load_data()
 
-    # Add edges based on the process order (e.g., job sequence)
-    for i in range(len(best_solution)-1):
-        G.add_edge(list(best_solution.keys())[i], list(best_solution.keys())[i+1])
+    if data is not None:
+        bounds = define_bounds(data)
+        best_solution, fitness_trends = ant_colony_optimization(data, bounds)
 
-    # Set up the plot
-    pos = nx.spring_layout(G, seed=42)  # Set position for the nodes
-    labels = nx.get_node_attributes(G, 'label')
+        st.subheader("Best Solution:")
+        for key, value in best_solution.items():
+            st.write(f"{key}: {value}")
 
-    # Plot the graph
-    plt.figure(figsize=(10, 6))
-    nx.draw(G, pos, with_labels=True, node_color="skyblue", node_size=2000, font_size=10, font_weight="bold", arrows=True)
-    nx.draw_networkx_labels(G, pos, labels, font_size=12)
-    st.pyplot()
+        # Plot fitness trends
+        st.subheader("Fitness Trend over Iterations")
+        plt.plot(fitness_trends)
+        plt.title("ACO Fitness Trend")
+        plt.xlabel("Iterations")
+        plt.ylabel("Fitness")
+        st.pyplot()
 
-# Run ACO and Visualize
-if st.button('Run ACO'):
-    best_solution, fitness_trends = ant_colony_optimization()
-
-    # Display the best solution
-    st.write("Best Solution:")
-    st.write(best_solution)
-
-    # Visualize best solution as a graph
-    st.write("Visualizing Best Solution as Graph:")
-    visualize_best_solution(best_solution)
-
-    # Display fitness trends graph
-    st.write("Fitness Trends over Iterations:")
-    st.line_chart(fitness_trends)
-
-    # Additional Information like lateness penalty can be displayed
-    lateness_penalty = max(0, best_solution["Processing_Time_Machine_1"] + best_solution["Processing_Time_Machine_2"] - best_solution["Due_Date"])
-    st.write(f"Lateness Penalty: {lateness_penalty}")
+if __name__ == "__main__":
+    main()
