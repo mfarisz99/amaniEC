@@ -118,11 +118,15 @@ if uploaded_file is not None:
         best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(
             data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
 
-        # Paparan hasil terbaik dalam bentuk jadual
+        # Paparan hasil terbaik dalam bentuk jadual, dengan pembahagian mengikut mesin
         st.subheader("Best Solution (Machine Allocation for Each Task)")
+        task_names = [f"Task {i+1}" for i in range(len(best_solution))]
+        machine_1_tasks = [task_names[i] for i in range(len(best_solution)) if best_solution[i] == 0]
+        machine_2_tasks = [task_names[i] for i in range(len(best_solution)) if best_solution[i] == 1]
+
         solution_df = pd.DataFrame({
-            "Task": [f"Task {i+1}" for i in range(len(best_solution))],
-            "Machine Assigned": best_solution
+            "Machine 1 Tasks": [task if task in machine_1_tasks else '' for task in task_names],
+            "Machine 2 Tasks": [task if task in machine_2_tasks else '' for task in task_names]
         })
         st.table(solution_df)
 
