@@ -5,7 +5,7 @@ import streamlit as st
 
 # Parameter global
 def initialize_params():
-    num_shops = st.sidebar.slider("Number of Shops", min_value=5, max_value=20, value=8)
+    num_shops = st.slider("Number of Shops", min_value=5, max_value=20, value=8)
     iterations = st.sidebar.slider("Number of Iterations", min_value=10, max_value=100, value=50)
     num_ants = st.sidebar.slider("Number of Ants", min_value=5, max_value=20, value=10)
     alpha = st.sidebar.slider("Alpha (Pheromone Importance)", min_value=0.1, max_value=5.0, value=1.0)
@@ -16,7 +16,7 @@ def initialize_params():
 # Lokasi kedai (random untuk contoh ini)
 def generate_shops(num_shops):
     return {
-        f"Shop_{i}": (random.uniform(0, 10), random.uniform(0, 10)) for i in range(1, num_shops + 1)
+        f"Shop_{i}": (round(random.uniform(0, 10), 2), round(random.uniform(0, 10), 2)) for i in range(1, num_shops + 1)
     }
 
 # Jarak antara kedai
@@ -105,6 +105,22 @@ def plot_shops_and_path(shops, best_path):
     plt.legend()
     st.pyplot(plt)
 
+# Paparan hasil dalam bentuk jadual
+def display_results_in_table(shops, best_path, best_distance):
+    shop_list = list(shops.keys())
+    path_names = [shop_list[i] for i in best_path]
+    distances = [round(calculate_distance(shop_list[best_path[i]], shop_list[best_path[i + 1]], shops), 2) for i in range(len(best_path) - 1)]
+    total_distance = sum(distances)
+
+    st.subheader("Machine Results")
+    data = {
+        "Shop": path_names[:-1],
+        "Next Shop": path_names[1:],
+        "Distance": distances,
+    }
+    st.table(data)
+    st.write("Total Distance:", total_distance)
+
 # Main function for Streamlit
 def main():
     st.title("Ant Colony Optimization for Shop Path Optimization")
@@ -128,6 +144,9 @@ def main():
 
     # Plot results
     plot_shops_and_path(shops, best_path)
+
+    # Display results in a table
+    display_results_in_table(shops, best_path, best_distance)
 
 if __name__ == "__main__":
     main()
