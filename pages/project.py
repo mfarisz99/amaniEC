@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Fungsi untuk memuat dataset
 @st.cache_data
@@ -77,7 +78,7 @@ def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORA
         # Store fitness trends for visualization
         fitness_trends.append(best_fitness)
 
-    return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2
+    return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2, pheromone
 
 # Memuat dataset
 st.title("Flowshop Scheduling Optimization with ACO")
@@ -86,22 +87,23 @@ uploaded_file = st.file_uploader("Upload Flowshop Scheduling Dataset", type=["cs
 if uploaded_file is not None:
     data = load_data(uploaded_file)
 
-    # Parameter ACO (pindahkan ke paparan utama)
-    st.sidebar.header("ACO Hyperparameters")
+    # Parameter ACO
+    col1, col2 = st.columns(2)
 
-    NUM_ANTS = st.sidebar.number_input("Number of Ants", min_value=10, max_value=200, value=50, step=10)
-    NUM_ITERATIONS = st.sidebar.number_input("Number of Iterations", min_value=10, max_value=500, value=100, step=10)
-    ALPHA = st.sidebar.slider("Pheromone Importance (Alpha)", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
-    BETA = st.sidebar.slider("Heuristic Importance (Beta)", min_value=0.1, max_value=5.0, value=2.0, step=0.1)
+    with col1:
+        NUM_ANTS = st.number_input("Number of Ants", min_value=10, max_value=200, value=50, step=10)
+        NUM_ITERATIONS = st.number_input("Number of Iterations", min_value=10, max_value=500, value=100, step=10)
+        ALPHA = st.slider("Pheromone Importance (Alpha)", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
+        BETA = st.slider("Heuristic Importance (Beta)", min_value=0.1, max_value=5.0, value=2.0, step=0.1)
 
-    EVAPORATION_RATE = st.sidebar.slider("Evaporation Rate", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
-    Q = st.sidebar.number_input("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100, step=10)
-    MUT_RATE = st.sidebar.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2, step=0.05)
+    with col2:
+        EVAPORATION_RATE = st.slider("Evaporation Rate", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
+        Q = st.number_input("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100, step=10)
+        MUT_RATE = st.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2, step=0.05)
 
     # Menunjukkan Aliran Kerja (Workflow) dalam bentuk teks dan imej
     if st.button("Run ACO Optimization"):
-        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(
-            data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
+        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2, pheromone = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
 
         # Paparan hasil terbaik dalam bentuk jadual
         st.subheader("Best Solution (Machine Allocation for Each Task)")
@@ -119,6 +121,13 @@ if uploaded_file is not None:
         })
         st.table(processing_time_df)
 
-        # Plotting Fitness Trends
+        # Visualisasi Heatmap Feromon
+        st.subheader("Pheromone Intensity Heatmap")
+        fig, ax = plt.subplots(figsize=(8, 6))
+        sns.heatmap(pheromone, cmap="YlGnBu", annot=True, fmt=".2f", cbar=True, ax=ax)
+        ax.set_title("Pheromone Intensity Heatmap")
+        st.pyplot(fig)
+
+        # Visualisasi Trend Fitness
         st.subheader("Fitness Trend Over Iterations")
         st.line_chart(fitness_trends)
