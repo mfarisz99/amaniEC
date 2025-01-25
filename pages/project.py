@@ -91,13 +91,13 @@ def ant_colony_optimization(data, bounds):
     return best_solution, fitness_trends
 
 # Antaramuka Streamlit
-st.title("Simulasi Ant Colony Optimization")
+st.title("Ant Colony Optimization")
 
 # Muat naik dataset
-uploaded_file = st.file_uploader("Muat naik dataset flowshop scheduling (CSV)", type="csv")
+uploaded_file = st.file_uploader("Upload dataset flowshop scheduling (CSV)", type="csv")
 if uploaded_file:
     data = pd.read_csv(uploaded_file)
-    st.write("Data yang dimuat naik:")
+    st.write("Upload File:")
     st.dataframe(data)
 
     # Tetapkan julat
@@ -112,7 +112,7 @@ if uploaded_file:
     best_solution, fitness_trends = ant_colony_optimization(data, bounds)
 
     # Papar hasil terbaik
-    st.write("Penyelesaian Terbaik:")
+    st.write("The Best Solution:")
     st.json(best_solution)
 
     # Plot tren kecergasan
