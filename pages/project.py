@@ -124,22 +124,22 @@ if uploaded_file is not None:
         st.table(processing_time_df)
 
         # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik untuk Mesin 1
-st.subheader("Best Ant Colony Path Visualization for Machine 1")
-fig1, ax1 = plt.subplots(figsize=(8, 6))
-coordinates_machine_1 = {i: (random.randint(0, 10), random.randint(0, 10)) for i in range(len(best_solution))}
+        st.subheader("Best Ant Colony Path Visualization for Machine 1")
+        fig1, ax1 = plt.subplots(figsize=(8, 6))
+        coordinates_machine_1 = {i: (random.randint(0, 10), random.randint(0, 10)) for i in range(len(best_solution))}
 
-for i in range(len(best_solution) - 1):
-    x_coords = [coordinates_machine_1[i][0], coordinates_machine_1[i + 1][0]]
-    y_coords = [coordinates_machine_1[i][1], coordinates_machine_1[i + 1][1]]
+    for i in range(len(best_solution) - 1):
+        x_coords = [coordinates_machine_1[i][0], coordinates_machine_1[i + 1][0]]
+        y_coords = [coordinates_machine_1[i][1], coordinates_machine_1[i + 1][1]]
 
     if best_solution[i] == 0 and best_solution[i + 1] == 0:  # Mesin 1
         ax1.plot(x_coords, y_coords, color='red')  # Garis merah untuk Mesin 1
 
-for task, coord in coordinates_machine_1.items():
-    ax1.text(coord[0], coord[1], "🏪", fontsize=12, ha='center', va='center')  # Ikon 🏪 sebagai titik
+    for task, coord in coordinates_machine_1.items():
+        ax1.text(coord[0], coord[1], "🏪", fontsize=12, ha='center', va='center')  # Ikon 🏪 sebagai titik
 
-ax1.set_title("Best Ant Colony Path for Machine 1")
-st.pyplot(fig1)
+    ax1.set_title("Best Ant Colony Path for Machine 1")
+    st.pyplot(fig1)
 
 # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik untuk Mesin 2
 st.subheader("Best Ant Colony Path Visualization for Machine 2")
