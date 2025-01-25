@@ -13,15 +13,6 @@ def load_data():
         st.warning("Sila muat naik fail CSV terlebih dahulu.")
         return None
 
-# Parameters
-NUM_ANTS = 50
-NUM_ITERATIONS = 100
-ALPHA = 1  # Pheromone importance
-BETA = 2   # Heuristic importance
-EVAPORATION_RATE = 0.5
-Q = 100  # Pheromone deposit factor
-MUT_RATE = 0.2  # Mutation rate
-
 # Define bounds for optimization
 def define_bounds(data):
     bounds = {
@@ -62,7 +53,7 @@ def mutate(solution, bounds, MUT_RATE):
     return solution
 
 # Main ACO loop
-def ant_colony_optimization(data, bounds):
+def ant_colony_optimization(data, bounds, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE):
     pheromones = initialize_pheromones(bounds)
     best_solution = None
     best_fitness = float('-inf')
@@ -116,8 +107,19 @@ def main():
     data = load_data()
 
     if data is not None:
+        # Let the user input custom values for ACO parameters
+        NUM_ANTS = st.slider("Jumlah Ant", min_value=10, max_value=100, value=50)
+        NUM_ITERATIONS = st.slider("Jumlah Iterasi", min_value=10, max_value=200, value=100)
+        ALPHA = st.slider("Pheromone Importance (ALPHA)", min_value=0.1, max_value=5.0, value=1.0)
+        BETA = st.slider("Heuristic Importance (BETA)", min_value=0.1, max_value=5.0, value=2.0)
+        EVAPORATION_RATE = st.slider("Phrmone Evaporation Rate", min_value=0.0, max_value=1.0, value=0.5)
+        Q = st.slider("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100)
+        MUT_RATE = st.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2)
+
         bounds = define_bounds(data)
-        best_solution, fitness_trends = ant_colony_optimization(data, bounds)
+        best_solution, fitness_trends = ant_colony_optimization(
+            data, bounds, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE
+        )
 
         st.subheader("Best Solution:")
         for key, value in best_solution.items():
