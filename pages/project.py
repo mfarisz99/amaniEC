@@ -1,145 +1,76 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import random
 import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
 
 # Fungsi untuk memuat dataset
 @st.cache_data
 def load_data(filepath):
     return pd.read_csv(filepath)
 
-# Fungsi untuk menjana penyelesaian (solusi) berdasarkan feromon
-def generate_solution(pheromone, num_tasks, num_machines):
-    solution = []
-    for task in range(num_tasks):
-        probabilities = pheromone[task, :]  # Dapatkan nilai feromon bagi tugas
-        total_pheromone = sum(probabilities)
-        probabilities = [p / total_pheromone for p in probabilities]  # Normalisasi kepada kebarangkalian
-        chosen_machine = np.random.choice(num_machines, p=probabilities)  # Pilih mesin berdasarkan kebarangkalian
-        solution.append(chosen_machine)
-    return solution
+# Fungsi untuk memisahkan tugas kepada dua mesin berdasarkan penyelesaian terbaik
+def separate_tasks(best_solution, task_coordinates):
+    machine_1_tasks = [i for i, m in enumerate(best_solution) if m == 0]
+    machine_2_tasks = [i for i, m in enumerate(best_solution) if m == 1]
+    
+    machine_1_coords = [task_coordinates[task] for task in machine_1_tasks]
+    machine_2_coords = [task_coordinates[task] for task in machine_2_tasks]
+    
+    return machine_1_coords, machine_2_coords, machine_1_tasks, machine_2_tasks
 
-# Fungsi untuk mengira kecergasan (fitness) penyelesaian
-def calculate_fitness(solution, data):
-    total_time = 0
-    processing_time_machine_1 = 0
-    processing_time_machine_2 = 0
-    for i, machine in enumerate(solution):
-        if machine == 0:
-            processing_time_machine_1 += data["Processing_Time_Machine_1"][i] + data["Setup_Time_Machine_1"][i]
-        else:
-            processing_time_machine_2 += data["Processing_Time_Machine_2"][i] + data["Setup_Time_Machine_2"][i]
-    total_time = processing_time_machine_1 + processing_time_machine_2
-    return total_time, processing_time_machine_1, processing_time_machine_2
+# Visualisasi laluan untuk penyelesaian terbaik
+def plot_best_solution(task_coordinates, machine_1_coords, machine_2_coords, machine_1_tasks, machine_2_tasks):
+    fig, ax = plt.subplots(figsize=(8, 6))
 
-# Fungsi untuk mengemas kini feromon
-def update_pheromone(pheromone, solutions, fitness_values, EVAPORATION_RATE, Q):
-    # Penguapan feromon
-    pheromone *= (1 - EVAPORATION_RATE)
+    # Plot laluan untuk Machine 1
+    x1, y1 = zip(*machine_1_coords)
+    ax.plot(x1, y1, '-o', color='red', label='Machine 1')
 
-    # Deposit feromon berdasarkan penyelesaian terbaik
-    for solution, fitness_value in zip(solutions, fitness_values):
-        for task, machine in enumerate(solution):
-            pheromone[task, machine] += Q / fitness_value
-    return pheromone
+    # Plot laluan untuk Machine 2
+    x2, y2 = zip(*machine_2_coords)
+    ax.plot(x2, y2, '-o', color='blue', label='Machine 2')
 
-# Fungsi untuk pengoptimuman ACO
-def ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE):
-    num_tasks = len(data)  # Bilangan tugas dalam jadual
-    num_machines = 2  # Bilangan mesin dalam masalah Flowshop
+    # Plot semua tugas dengan label nombor
+    for task, (x, y) in task_coordinates.items():
+        ax.text(x, y, str(task + 1), fontsize=10, ha='center', va='center', 
+                bbox=dict(facecolor='white', edgecolor='black', boxstyle='circle'))
 
-    # Inisialisasi feromon
-    pheromone = np.ones((num_tasks, num_machines))  # Matrix feromon awal
-    best_solution = None
-    best_fitness = np.inf
-    fitness_trends = []
+    # Tetapan graf
+    ax.set_title("Best Solution Visualization: Task Assignment by Machine")
+    ax.set_xlabel("X Coordinate")
+    ax.set_ylabel("Y Coordinate")
+    ax.legend()
+    ax.grid(True, linestyle='--', alpha=0.7)
 
-    for iteration in range(NUM_ITERATIONS):
-        iteration_solutions = []
-        iteration_fitness = []
+    # Paparkan graf
+    st.pyplot(fig)
 
-        # Generate solutions for each ant
-        for ant in range(NUM_ANTS):
-            solution = generate_solution(pheromone, num_tasks, num_machines)
-            fitness_value, processing_time_machine_1, processing_time_machine_2 = calculate_fitness(solution, data)
-            iteration_solutions.append(solution)
-            iteration_fitness.append(fitness_value)
-
-            # Update best solution
-            if fitness_value < best_fitness:
-                best_solution = solution
-                best_fitness = fitness_value
-
-        # Update pheromone levels based on fitness values
-        pheromone = update_pheromone(pheromone, iteration_solutions, iteration_fitness, EVAPORATION_RATE, Q)
-
-        # Store fitness trends for visualization
-        fitness_trends.append(best_fitness)
-
-    return best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2
-
-# Memuat dataset
-st.title("Flowshop Scheduling Optimization with ACO")
+# Streamlit UI
+st.title("Flowshop Scheduling Optimization - Best Solution Visualization")
 
 uploaded_file = st.file_uploader("Upload Flowshop Scheduling Dataset", type=["csv"])
+
 if uploaded_file is not None:
     data = load_data(uploaded_file)
     st.write("Dataset Preview:")
     st.dataframe(data.head())
 
-    # Parameter ACO (pindahkan ke paparan utama)
-    col1, col2 = st.columns(2)
+    # Masukkan penyelesaian terbaik dan koordinat tugas secara manual atau berdasarkan output ACO
+    best_solution = st.text_input("Enter Best Solution (e.g., 0,1,0,1,0,1,0):", "0,1,0,1,1,0,1,0,0,1")
+    best_solution = [int(x) for x in best_solution.split(',')]
 
-    with col1:
-        NUM_ANTS = st.number_input("Number of Ants", min_value=10, max_value=200, value=50, step=10)
-        NUM_ITERATIONS = st.number_input("Number of Iterations", min_value=10, max_value=500, value=100, step=10)
-        ALPHA = st.slider("Pheromone Importance (Alpha)", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
-        BETA = st.slider("Heuristic Importance (Beta)", min_value=0.1, max_value=5.0, value=2.0, step=0.1)
+    # Masukkan koordinat tugas secara manual
+    st.subheader("Enter Task Coordinates:")
+    num_tasks = len(best_solution)
+    task_coordinates = {}
+    for i in range(num_tasks):
+        x = st.number_input(f"Task {i+1} X-coordinate:", min_value=0.0, value=float(i+1))
+        y = st.number_input(f"Task {i+1} Y-coordinate:", min_value=0.0, value=float(i+2))
+        task_coordinates[i] = (x, y)
 
-    with col2:
-        EVAPORATION_RATE = st.slider("Evaporation Rate", min_value=0.1, max_value=1.0, value=0.5, step=0.1)
-        Q = st.number_input("Pheromone Deposit Factor (Q)", min_value=10, max_value=500, value=100, step=10)
-        MUT_RATE = st.slider("Mutation Rate", min_value=0.0, max_value=1.0, value=0.2, step=0.05)
+    # Pisahkan tugas kepada dua mesin
+    machine_1_coords, machine_2_coords, machine_1_tasks, machine_2_tasks = separate_tasks(best_solution, task_coordinates)
 
-    # Menunjukkan Aliran Kerja (Workflow) dalam bentuk teks dan imej
-    if st.button("Run ACO Optimization"):
-        best_solution, fitness_trends, processing_time_machine_1, processing_time_machine_2 = ant_colony_optimization(data, NUM_ANTS, NUM_ITERATIONS, ALPHA, BETA, EVAPORATION_RATE, Q, MUT_RATE)
-
-        # Paparan hasil terbaik dalam bentuk jadual
-        st.subheader("Best Solution (Machine Allocation for Each Task)")
-        solution_df = pd.DataFrame({
-            "Task": [f"Task {i+1}" for i in range(len(best_solution))],
-            "Machine Assigned": best_solution
-        })
-        st.table(solution_df)
-
-        # Paparan masa pemprosesan bagi setiap mesin
-        st.subheader("Processing Time for Each Machine")
-        processing_time_df = pd.DataFrame({
-            "Machine 1 Processing Time": [processing_time_machine_1],
-            "Machine 2 Processing Time": [processing_time_machine_2]
-        })
-        st.table(processing_time_df)
-
-        # Visualisasi Ant Colony: Paparkan perjalanan semut terbaik sahaja
-        st.subheader("Best Ant Colony Path Visualization")
-        fig, ax = plt.subplots(figsize=(8, 6))
-
-        # Warna untuk visualisasi
-        colors = list(mcolors.TABLEAU_COLORS)
-
-        # Visualisasi perjalanan semut terbaik
-        task_numbers = np.arange(len(best_solution))
-        ax.plot(task_numbers, best_solution, marker='o', color='blue', label='Best Solution')
-
-        ax.set_title("Best Ant Colony Path Visualization")
-        ax.set_xlabel("Task Index")
-        ax.set_ylabel("Machine Index")
-        ax.legend()
-        st.pyplot(fig)
-
-        # Plotting Fitness Trends
-        st.subheader("Fitness Trend Over Iterations")
-        st.line_chart(fitness_trends)
+    # Visualisasi
+    if st.button("Visualize Best Solution"):
+        plot_best_solution(task_coordinates, machine_1_coords, machine_2_coords, machine_1_tasks, machine_2_tasks)
